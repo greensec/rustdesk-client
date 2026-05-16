@@ -16,15 +16,10 @@ jobs:
         include:
           - target: linux
             os: ubuntu-latest
-            shell: bash
-
           - target: windows
             os: windows-latest
-            shell: pwsh
-
           - target: macos
             os: macos-latest
-            shell: bash
 
     runs-on: ${{ matrix.os }}
 
@@ -33,7 +28,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout RustDesk source
-        shell: ${{ matrix.shell }}
         run: |
           git clone --recursive https://github.com/rustdesk/rustdesk.git rustdesk
           cd rustdesk
@@ -41,21 +35,18 @@ jobs:
           git submodule update --init --recursive
 
       - name: Show RustDesk commit
-        shell: ${{ matrix.shell }}
         run: |
           cd rustdesk
           git rev-parse HEAD
 
-      # Enable this later after the plain build works.
+      # Add this later, after the unmodified build works.
       # - name: Apply self-hosted config patch
-      #   shell: ${{ matrix.shell }}
       #   run: |
       #     cd rustdesk
       #     git apply ../patches/selfhosted-config.patch
 
       - name: Install Linux dependencies
         if: matrix.target == 'linux'
-        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -66,7 +57,6 @@ jobs:
 
       - name: Build Linux
         if: matrix.target == 'linux'
-        shell: bash
         run: |
           cd rustdesk
           python3 build.py
@@ -76,21 +66,37 @@ jobs:
         shell: pwsh
         run: |
           cd rustdesk
-          python3 build.py
+          python build.py
 
       - name: Build macOS
         if: matrix.target == 'macos'
-        shell: bash
         run: |
           cd rustdesk
           python3 build.py
 
-      - name: Collect artifacts
-        shell: ${{ matrix.shell }}
-        continue-on-error: true
+      - name: Collect Linux/macOS artifacts
+        if: matrix.target != 'windows'
         run: |
-          mkdir artifacts
-          find rustdesk -type f \( -name "*.exe" -o -name "*.msi" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.pkg" -o -name "*.zip" \) -exec cp {} artifacts/ \;
+          mkdir -p artifacts
+          find rustdesk -type f \( \
+            -name "*.deb" -o \
+            -name "*.AppImage" -o \
+            -name "*.dmg" -o \
+            -name "*.pkg" -o \
+            -name "*.zip" \
+          \) -exec cp {} artifacts/ \; || true
+
+      - name: Collect Windows artifacts
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+
+          Get-ChildItem -Path rustdesk -Recurse -File `
+            -Include *.exe,*.msi,*.zip `
+            | ForEach-Object {
+                Copy-Item $_.FullName -Destination artifacts -Force
+              }
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
