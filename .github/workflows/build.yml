@@ -14,14 +14,144 @@ env:
   MAC_RUST_VERSION: "1.81.0"
   LLVM_VERSION: "15.0.6"
   VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
+  CARGO_EXPAND_VERSION: "1.0.95"
+  FLUTTER_RUST_BRIDGE_VERSION: "1.80.1"
+  BRIDGE_FLUTTER_VERSION: "3.22.3"
 
 jobs:
-  linux:
+
+  generate_bridge:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout builder repo
         uses: actions/checkout@v4
+
+      - name: Checkout RustDesk source
+        shell: bash
+        env:
+          RUSTDESK_REF: ${{ inputs.rustdesk_ref }}
+        run: |
+          set -euo pipefail
+
+          git clone --recursive https://github.com/rustdesk/rustdesk.git rustdesk
+          cd rustdesk
+          git checkout "$RUSTDESK_REF"
+          git submodule update --init --recursive
+
+      - name: Install bridge build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y \
+            ca-certificates \
+            clang \
+            cmake \
+            curl \
+            gcc \
+            g++ \
+            git \
+            libclang-dev \
+            libgtk-3-dev \
+            llvm-dev \
+            nasm \
+            ninja-build \
+            pkg-config \
+            wget
+
+      - name: Setup Rust for bridge generation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rustup toolchain install "${{ env.RUST_VERSION }}" --profile minimal --component rustfmt
+          rustup default "${{ env.RUST_VERSION }}"
+
+      - name: Setup Flutter for bridge generation
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.BRIDGE_FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate Flutter/Rust bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd rustdesk
+          cargo install cargo-expand --version "${{ env.CARGO_EXPAND_VERSION }}" --locked
+          cargo install flutter_rust_bridge_codegen --version "${{ env.FLUTTER_RUST_BRIDGE_VERSION }}" --features "uuid" --locked
+
+          pushd flutter
+          sed -i -e 's/extended_text: 14.0.0/extended_text: 13.0.0/g' pubspec.yaml
+          flutter pub get
+          popd
+
+          ~/.cargo/bin/flutter_rust_bridge_codegen \
+            --rust-input ./src/flutter_ffi.rs \
+            --dart-output ./flutter/lib/generated_bridge.dart \
+            --c-output ./flutter/macos/Runner/bridge_generated.h
+
+          cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
+
+          test -f ./src/bridge_generated.rs
+          test -f ./src/bridge_generated.io.rs
+          test -f ./flutter/lib/generated_bridge.dart
+
+      - name: Stage bridge files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p \
+            bridge-artifact/src \
+            bridge-artifact/flutter/lib \
+            bridge-artifact/flutter/macos/Runner \
+            bridge-artifact/flutter/ios/Runner
+
+          cp rustdesk/src/bridge_generated.rs bridge-artifact/src/
+          cp rustdesk/src/bridge_generated.io.rs bridge-artifact/src/
+          cp rustdesk/flutter/lib/generated_bridge.dart bridge-artifact/flutter/lib/
+          cp rustdesk/flutter/lib/generated_bridge.freezed.dart bridge-artifact/flutter/lib/
+          cp rustdesk/flutter/macos/Runner/bridge_generated.h bridge-artifact/flutter/macos/Runner/
+          cp rustdesk/flutter/ios/Runner/bridge_generated.h bridge-artifact/flutter/ios/Runner/
+
+      - name: Upload bridge artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-artifact
+          path: bridge-artifact/
+
+  linux:
+    needs: generate_bridge
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ env.RUST_VERSION }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_COMMIT_ID }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Prepare RustDesk
         uses: ./.github/actions/prepare-rustdesk
@@ -102,6 +232,12 @@ jobs:
           target: linux
           flutter_version: ${{ env.FLUTTER_VERSION }}
 
+      - name: Restore generated Flutter/Rust bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: bridge-artifact
+          path: rustdesk/
+
       - name: Setup vcpkg
         uses: ./.github/actions/setup-vcpkg
         with:
@@ -137,11 +273,32 @@ jobs:
           if-no-files-found: warn
 
   windows:
+    needs: generate_bridge
     runs-on: windows-2022
 
     steps:
       - name: Checkout builder repo
         uses: actions/checkout@v4
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ env.RUST_VERSION }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_COMMIT_ID }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Prepare RustDesk
         uses: ./.github/actions/prepare-rustdesk
@@ -182,6 +339,12 @@ jobs:
           target: windows
           flutter_version: ${{ env.FLUTTER_VERSION }}
 
+      - name: Restore generated Flutter/Rust bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: bridge-artifact
+          path: rustdesk/
+
       - name: Setup vcpkg
         uses: ./.github/actions/setup-vcpkg
         with:
@@ -213,11 +376,32 @@ jobs:
           if-no-files-found: warn
 
   macos:
+    needs: generate_bridge
     runs-on: macos-14
 
     steps:
       - name: Checkout builder repo
         uses: actions/checkout@v4
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ env.MAC_RUST_VERSION }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_COMMIT_ID }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Prepare RustDesk
         uses: ./.github/actions/prepare-rustdesk
@@ -270,6 +454,12 @@ jobs:
           target: macos
           flutter_version: ${{ env.FLUTTER_VERSION }}
 
+      - name: Restore generated Flutter/Rust bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: bridge-artifact
+          path: rustdesk/
+
       - name: Setup vcpkg
         uses: ./.github/actions/setup-vcpkg
         with:
@@ -286,6 +476,12 @@ jobs:
           cd rustdesk
 
           if [ "$(uname -m)" = "arm64" ]; then
+            MIN_MACOS_VERSION="12.3"
+            sed -i -e "s/MACOSX_DEPLOYMENT_TARGET=[0-9]*.[0-9]*/MACOSX_DEPLOYMENT_TARGET=${MIN_MACOS_VERSION}/" build.py
+            sed -i -e "s/platform :osx, '.*'/platform :osx, '${MIN_MACOS_VERSION}'/" flutter/macos/Podfile
+            sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
+            sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
+
             python3 ./build.py \
               --flutter \
               --hwcodec \

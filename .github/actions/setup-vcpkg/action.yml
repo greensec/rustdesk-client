@@ -20,10 +20,17 @@ runs:
       run: |
         set -euo pipefail
 
-        git clone https://github.com/microsoft/vcpkg.git "$GITHUB_WORKSPACE/vcpkg"
-        cd "$GITHUB_WORKSPACE/vcpkg"
+        if [ -d "$GITHUB_WORKSPACE/vcpkg/.git" ]; then
+          cd "$GITHUB_WORKSPACE/vcpkg"
+          git fetch origin
+          git checkout "$VCPKG_COMMIT_ID"
+        else
+          rm -rf "$GITHUB_WORKSPACE/vcpkg"
+          git clone https://github.com/microsoft/vcpkg.git "$GITHUB_WORKSPACE/vcpkg"
+          cd "$GITHUB_WORKSPACE/vcpkg"
+          git checkout "$VCPKG_COMMIT_ID"
+        fi
 
-        git checkout "$VCPKG_COMMIT_ID"
         ./bootstrap-vcpkg.sh
 
         echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> "$GITHUB_ENV"
@@ -37,10 +44,19 @@ runs:
       env:
         VCPKG_COMMIT_ID: ${{ inputs.vcpkg_commit_id }}
       run: |
-        git clone https://github.com/microsoft/vcpkg.git "$env:GITHUB_WORKSPACE\vcpkg"
-        cd "$env:GITHUB_WORKSPACE\vcpkg"
+        if (Test-Path "$env:GITHUB_WORKSPACE\vcpkg\.git") {
+          cd "$env:GITHUB_WORKSPACE\vcpkg"
+          git fetch origin
+          git checkout "$env:VCPKG_COMMIT_ID"
+        } else {
+          if (Test-Path "$env:GITHUB_WORKSPACE\vcpkg") {
+            Remove-Item -Recurse -Force "$env:GITHUB_WORKSPACE\vcpkg"
+          }
+          git clone https://github.com/microsoft/vcpkg.git "$env:GITHUB_WORKSPACE\vcpkg"
+          cd "$env:GITHUB_WORKSPACE\vcpkg"
+          git checkout "$env:VCPKG_COMMIT_ID"
+        }
 
-        git checkout "$env:VCPKG_COMMIT_ID"
         .\bootstrap-vcpkg.bat
 
         "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
