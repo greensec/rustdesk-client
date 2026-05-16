@@ -217,7 +217,8 @@ jobs:
             libgstreamer-plugins-base1.0-dev \
             libpam0g-dev \
             libva-dev \
-            libunwind-dev
+            libunwind-dev \
+            rpm
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -244,7 +245,7 @@ jobs:
           target: linux
           vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
 
-      - name: Build Linux
+      - name: Build Linux DEB
         shell: bash
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -260,6 +261,33 @@ jobs:
 
           python3 ./build.py --flutter --skip-cargo
 
+      - name: Build Linux RPM packages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd rustdesk
+          rm -rf "$HOME/rpmbuild" rpm-output
+          mkdir -p rpm-output
+
+          echo "Building Fedora/RHEL RPM package"
+          HBB="$PWD" rpmbuild ./res/rpm-flutter.spec -bb
+          find "$HOME/rpmbuild/RPMS" -type f -name "rustdesk*.rpm" \
+            -exec cp {} rpm-output/ \;
+
+          rm -rf "$HOME/rpmbuild"
+
+          echo "Building SUSE RPM package"
+          HBB="$PWD" rpmbuild ./res/rpm-flutter-suse.spec -bb
+          find "$HOME/rpmbuild/RPMS" -type f -name "rustdesk*.rpm" | while read -r rpm_file; do
+            base="$(basename "${rpm_file%.rpm}")"
+            cp "$rpm_file" "rpm-output/${base}-suse.rpm"
+          done
+
+          find rpm-output -type f -name "*.rpm" -exec cp {} . \;
+          test -n "$(find rpm-output -type f -name '*.rpm' -print -quit)"
+          ls -la rpm-output
+
       - name: Collect artifacts
         uses: ./.github/actions/collect-artifacts
         with:
@@ -270,7 +298,120 @@ jobs:
         with:
           name: rustdesk-linux
           path: artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
+
+  linux_appimage:
+    needs: linux
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+
+      - name: Prepare RustDesk packaging tree
+        uses: ./.github/actions/prepare-rustdesk
+        with:
+          rustdesk_ref: ${{ inputs.rustdesk_ref }}
+          host: ${{ secrets.RENDEZVOUS_SERVER }}
+          relay: ${{ secrets.RELAY_SERVER }}
+          api: ${{ secrets.API_SERVER }}
+          key: ${{ secrets.RS_PUB_KEY }}
+          app_name: ${{ vars.CLIENT_NAME }}
+          app_id: ${{ vars.CLIENT_IDENTIFIER }}
+          description: ${{ vars.CLIENT_DESCRIPTION }}
+          company: ${{ vars.CLIENT_COMPANY }}
+          asset_dir: branding
+          target: linux
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          name: rustdesk-linux
+          path: linux-artifacts
+
+      - name: Build AppImage package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools libfuse2 python3-pip
+          python3 -m pip install --user git+https://github.com/rustdesk-org/appimage-builder.git
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+
+          deb_file="$(find linux-artifacts -type f -name '*.deb' | head -n 1)"
+          test -n "$deb_file"
+
+          cp "$deb_file" rustdesk/appimage/rustdesk.deb
+          cd rustdesk/appimage
+          appimage-builder --skip-tests --recipe ./AppImageBuilder-x86_64.yml
+          test -n "$(find . -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-linux-appimage
+          path: rustdesk/appimage/*.AppImage
+          if-no-files-found: error
+
+  linux_flatpak:
+    needs: linux
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+
+      - name: Prepare RustDesk packaging tree
+        uses: ./.github/actions/prepare-rustdesk
+        with:
+          rustdesk_ref: ${{ inputs.rustdesk_ref }}
+          host: ${{ secrets.RENDEZVOUS_SERVER }}
+          relay: ${{ secrets.RELAY_SERVER }}
+          api: ${{ secrets.API_SERVER }}
+          key: ${{ secrets.RS_PUB_KEY }}
+          app_name: ${{ vars.CLIENT_NAME }}
+          app_id: ${{ vars.CLIENT_IDENTIFIER }}
+          description: ${{ vars.CLIENT_DESCRIPTION }}
+          company: ${{ vars.CLIENT_COMPANY }}
+          asset_dir: branding
+          target: linux
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          name: rustdesk-linux
+          path: linux-artifacts
+
+      - name: Build Flatpak package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y git flatpak flatpak-builder
+
+          deb_file="$(find linux-artifacts -type f -name '*.deb' | head -n 1)"
+          test -n "$deb_file"
+
+          cp "$deb_file" rustdesk/flatpak/rustdesk.deb
+          cd rustdesk/flatpak
+
+          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          git clone --depth=1 https://github.com/flathub/shared-modules.git shared-modules || true
+          flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./rustdesk.json
+
+          version_safe="$(echo '${{ inputs.rustdesk_ref }}' | tr '/ ' '--')"
+          flatpak build-bundle ./repo "rustdesk-${version_safe}-x86_64.flatpak" com.rustdesk.RustDesk
+          test -n "$(find . -maxdepth 1 -type f -name '*.flatpak' -print -quit)"
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-linux-flatpak
+          path: rustdesk/flatpak/*.flatpak
+          if-no-files-found: error
 
   windows:
     needs: generate_bridge
@@ -504,4 +645,4 @@ jobs:
         with:
           name: rustdesk-macos
           path: artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
