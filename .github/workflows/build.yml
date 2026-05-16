@@ -55,6 +55,10 @@ jobs:
             clang libclang-dev nasm yasm \
             python3 python3-pip
 
+      - name: Install Rust packaging tools
+        run: |
+          cargo install cargo-bundle --locked
+
       - name: Build Linux
         if: matrix.target == 'linux'
         run: |
