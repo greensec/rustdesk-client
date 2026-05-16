@@ -38,16 +38,15 @@ jobs:
         run: |
           cd rustdesk
           git rev-parse HEAD
-
       - name: Inject self-hosted RustDesk config on Linux/macOS
         if: matrix.target != 'windows'
         run: |
           python3 scripts/configure_rustdesk.py \
             --source-dir rustdesk \
-            --host "${{ secrets.RUSTDESK_ID_SERVER }}" \
-            --relay "${{ secrets.RUSTDESK_RELAY_SERVER }}" \
-            --api "${{ secrets.RUSTDESK_API_SERVER }}" \
-            --key "${{ secrets.RUSTDESK_PUBLIC_KEY }}"
+            --host "${{ secrets.RENDEZVOUS_SERVER }}" \
+            --relay "${{ secrets.RELAY_SERVER }}" \
+            --api "${{ secrets.API_SERVER }}" \
+            --key "${{ secrets.RS_PUB_KEY }}"
 
       - name: Inject self-hosted RustDesk config on Windows
         if: matrix.target == 'windows'
@@ -55,28 +54,28 @@ jobs:
         run: |
           python scripts/configure_rustdesk.py `
             --source-dir rustdesk `
-            --host "${{ secrets.RUSTDESK_ID_SERVER }}" `
-            --relay "${{ secrets.RUSTDESK_RELAY_SERVER }}" `
-            --api "${{ secrets.RUSTDESK_API_SERVER }}" `
-            --key "${{ secrets.RUSTDESK_PUBLIC_KEY }}"
+            --host "${{ secrets.RENDEZVOUS_SERVER }}" `
+            --relay "${{ secrets.RELAY_SERVER }}" `
+            --api "${{ secrets.API_SERVER }}" `
+            --key "${{ secrets.RS_PUB_KEY }}"
 
       - name: Verify injected config on Linux/macOS
         if: matrix.target != 'windows'
         run: |
-          grep -R "${{ secrets.RUSTDESK_ID_SERVER }}" rustdesk/libs/hbb_common/src/config.rs
+          grep -R "${{ secrets.RENDEZVOUS_SERVER }}" rustdesk/libs/hbb_common/src/config.rs
 
-          if [ -n "${{ secrets.RUSTDESK_API_SERVER }}" ]; then
-            grep -R "${{ secrets.RUSTDESK_API_SERVER }}" rustdesk/libs/hbb_common/src/config.rs || true
+          if [ -n "${{ secrets.API_SERVER }}" ]; then
+            grep -R "${{ secrets.API_SERVER }}" rustdesk/libs/hbb_common/src/config.rs || true
           fi
 
       - name: Verify injected config on Windows
         if: matrix.target == 'windows'
         shell: pwsh
         run: |
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "${{ secrets.RUSTDESK_ID_SERVER }}"
+          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "${{ secrets.RENDEZVOUS_SERVER }}"
 
-          if ("${{ secrets.RUSTDESK_API_SERVER }}" -ne "") {
-            Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "${{ secrets.RUSTDESK_API_SERVER }}" -ErrorAction SilentlyContinue
+          if ("${{ secrets.API_SERVER }}" -ne "") {
+            Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "${{ secrets.API_SERVER }}" -ErrorAction SilentlyContinue
           }
 
       - name: Install Linux dependencies
