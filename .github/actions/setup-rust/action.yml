@@ -1,0 +1,54 @@
+name: Setup Rust
+description: Install and configure Rust toolchain
+
+inputs:
+  target:
+    description: Target platform (linux, windows, macos)
+    required: true
+  rust_version:
+    description: Rust version for Linux/Windows
+    required: true
+  mac_rust_version:
+    description: Rust version for macOS
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Rust on Linux/Windows
+      if: inputs.target != 'macos'
+      shell: bash
+      env:
+        RUST_VERSION: ${{ inputs.rust_version }}
+      run: |
+        set -euo pipefail
+
+        rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
+        rustup default "$RUST_VERSION"
+
+        if [ "${{ inputs.target }}" = "windows" ]; then
+          rustup target add x86_64-pc-windows-msvc
+        fi
+
+        rustc --version
+        cargo --version
+
+    - name: Setup Rust on macOS
+      if: inputs.target == 'macos'
+      shell: bash
+      env:
+        MAC_RUST_VERSION: ${{ inputs.mac_rust_version }}
+      run: |
+        set -euo pipefail
+
+        rustup toolchain install "$MAC_RUST_VERSION" --profile minimal --component rustfmt
+        rustup default "$MAC_RUST_VERSION"
+
+        if [ "$(uname -m)" = "arm64" ]; then
+          rustup target add aarch64-apple-darwin
+        else
+          rustup target add x86_64-apple-darwin
+        fi
+
+        rustc --version
+        cargo --version

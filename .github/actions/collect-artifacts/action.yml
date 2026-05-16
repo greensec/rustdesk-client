@@ -1,0 +1,81 @@
+name: Collect Artifacts
+description: Collect build artifacts into artifacts/ directory
+
+inputs:
+  target:
+    description: Target platform (linux, windows, macos)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Collect Linux artifacts
+      if: inputs.target == 'linux'
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        mkdir -p artifacts
+
+        find rustdesk -type f \( \
+          -name "*.deb" -o \
+          -name "*.rpm" -o \
+          -name "*.AppImage" -o \
+          -name "*.tar.gz" -o \
+          -name "*.zip" \
+        \) -exec cp {} artifacts/ \; || true
+
+        ls -la artifacts || true
+
+    - name: Collect macOS artifacts
+      if: inputs.target == 'macos'
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        mkdir -p artifacts
+
+        find rustdesk -type f \( \
+          -name "*.dmg" -o \
+          -name "*.pkg" -o \
+          -name "*.zip" \
+        \) -exec cp {} artifacts/ \; || true
+
+        if [ -d "rustdesk/target/release/bundle/osx" ]; then
+          zip -r artifacts/rustdesk-macos-bundle.zip rustdesk/target/release/bundle/osx
+        fi
+
+        ls -la artifacts || true
+
+    - name: Collect Windows artifacts
+      if: inputs.target == 'windows'
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+
+        if (Test-Path "rustdesk\flutter\build\windows\x64\runner\Release") {
+          Compress-Archive `
+            -Path "rustdesk\flutter\build\windows\x64\runner\Release\*" `
+            -DestinationPath "artifacts\rustdesk-windows-flutter-release.zip" `
+            -Force
+        }
+
+        if (Test-Path "rustdesk\rustdesk") {
+          Compress-Archive `
+            -Path "rustdesk\rustdesk\*" `
+            -DestinationPath "artifacts\rustdesk-windows-folder.zip" `
+            -Force
+        }
+
+        Get-ChildItem -Path rustdesk -Recurse -File `
+          -Include *.exe,*.msi,*.zip `
+          | Where-Object {
+              $_.FullName -notlike "*\target\debug\*" -and
+              $_.FullName -notlike "*\target\release\build\*" -and
+              $_.FullName -notlike "*\vcpkg\*"
+            } `
+          | ForEach-Object {
+              Copy-Item $_.FullName -Destination artifacts -Force -ErrorAction SilentlyContinue
+            }
+
+        Get-ChildItem artifacts -ErrorAction SilentlyContinue

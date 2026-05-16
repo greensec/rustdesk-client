@@ -1,0 +1,120 @@
+name: Prepare RustDesk
+description: Checkout RustDesk source, update submodules, and inject config/branding
+
+inputs:
+  rustdesk_ref:
+    description: RustDesk tag, branch, or commit to build
+    required: true
+  host:
+    description: Rendezvous server host
+    required: true
+  relay:
+    description: Relay server
+    required: false
+    default: ""
+  api:
+    description: API server
+    required: false
+    default: ""
+  key:
+    description: Public key
+    required: true
+  app_name:
+    description: Application name
+    required: false
+    default: ""
+  app_id:
+    description: Application identifier
+    required: false
+    default: ""
+  description:
+    description: Application description
+    required: false
+    default: ""
+  company:
+    description: Company name
+    required: false
+    default: ""
+  asset_dir:
+    description: Branding asset directory
+    required: false
+    default: ""
+  target:
+    description: Target platform (linux, windows, macos)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout RustDesk source
+      shell: bash
+      env:
+        RUSTDESK_REF: ${{ inputs.rustdesk_ref }}
+      run: |
+        set -euo pipefail
+
+        git clone --recursive https://github.com/rustdesk/rustdesk.git rustdesk
+        cd rustdesk
+        git checkout "$RUSTDESK_REF"
+        git submodule update --init --recursive
+
+    - name: Show RustDesk commit
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        cd rustdesk
+        git rev-parse HEAD
+        git submodule status --recursive
+
+    - name: Inject self-hosted config and branding on Linux/macOS
+      if: inputs.target != 'windows'
+      shell: bash
+      env:
+        CUSTOM_RENDEZVOUS_SERVER: ${{ inputs.host }}
+        CUSTOM_RELAY_SERVER: ${{ inputs.relay }}
+        CUSTOM_API_SERVER: ${{ inputs.api }}
+        CUSTOM_PUBLIC_KEY: ${{ inputs.key }}
+        CLIENT_NAME: ${{ inputs.app_name }}
+        CLIENT_IDENTIFIER: ${{ inputs.app_id }}
+        CLIENT_DESCRIPTION: ${{ inputs.description }}
+        CLIENT_COMPANY: ${{ inputs.company }}
+      run: |
+        set -euo pipefail
+
+        python3 scripts/configure_rustdesk.py \
+          --source-dir rustdesk \
+          --host "$CUSTOM_RENDEZVOUS_SERVER" \
+          --relay "$CUSTOM_RELAY_SERVER" \
+          --api "$CUSTOM_API_SERVER" \
+          --key "$CUSTOM_PUBLIC_KEY" \
+          --app-name "$CLIENT_NAME" \
+          --app-id "$CLIENT_IDENTIFIER" \
+          --description "$CLIENT_DESCRIPTION" \
+          --company "$CLIENT_COMPANY" \
+          --asset-dir ${{ inputs.asset_dir }}
+
+    - name: Inject self-hosted config and branding on Windows
+      if: inputs.target == 'windows'
+      shell: pwsh
+      env:
+        CUSTOM_RENDEZVOUS_SERVER: ${{ inputs.host }}
+        CUSTOM_RELAY_SERVER: ${{ inputs.relay }}
+        CUSTOM_API_SERVER: ${{ inputs.api }}
+        CUSTOM_PUBLIC_KEY: ${{ inputs.key }}
+        CLIENT_NAME: ${{ inputs.app_name }}
+        CLIENT_IDENTIFIER: ${{ inputs.app_id }}
+        CLIENT_DESCRIPTION: ${{ inputs.description }}
+        CLIENT_COMPANY: ${{ inputs.company }}
+      run: |
+        python scripts/configure_rustdesk.py `
+          --source-dir rustdesk `
+          --host "$env:CUSTOM_RENDEZVOUS_SERVER" `
+          --relay "$env:CUSTOM_RELAY_SERVER" `
+          --api "$env:CUSTOM_API_SERVER" `
+          --key "$env:CUSTOM_PUBLIC_KEY" `
+          --app-name "$env:CLIENT_NAME" `
+          --app-id "$env:CLIENT_IDENTIFIER" `
+          --description "$env:CLIENT_DESCRIPTION" `
+          --company "$env:CLIENT_COMPANY" `
+          --asset-dir ${{ inputs.asset_dir }}

@@ -16,146 +16,35 @@ env:
   VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: linux
-            os: ubuntu-22.04
-          - target: windows
-            os: windows-2022
-          - target: macos
-            os: macos-14
-
-    runs-on: ${{ matrix.os }}
+  linux:
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout builder repo
         uses: actions/checkout@v4
 
-      - name: Checkout RustDesk source
-        shell: bash
-        env:
-          RUSTDESK_REF: ${{ inputs.rustdesk_ref }}
-        run: |
-          set -euo pipefail
+      - name: Prepare RustDesk
+        uses: ./.github/actions/prepare-rustdesk
+        with:
+          rustdesk_ref: ${{ inputs.rustdesk_ref }}
+          host: ${{ secrets.RENDEZVOUS_SERVER }}
+          relay: ${{ secrets.RELAY_SERVER }}
+          api: ${{ secrets.API_SERVER }}
+          key: ${{ secrets.RS_PUB_KEY }}
+          app_name: ${{ vars.CLIENT_NAME }}
+          app_id: ${{ vars.CLIENT_IDENTIFIER }}
+          description: ${{ vars.CLIENT_DESCRIPTION }}
+          company: ${{ vars.CLIENT_COMPANY }}
+          asset_dir: branding
+          target: linux
 
-          git clone --recursive https://github.com/rustdesk/rustdesk.git rustdesk
-          cd rustdesk
-          git checkout "$RUSTDESK_REF"
-          git submodule update --init --recursive
-
-      - name: Show RustDesk commit
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          cd rustdesk
-          git rev-parse HEAD
-          git submodule status --recursive
-
-      - name: Inject self-hosted config and branding on Linux/macOS
-        if: matrix.target != 'windows'
-        shell: bash
-        env:
-          CUSTOM_RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
-          CUSTOM_RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
-          CUSTOM_API_SERVER: ${{ secrets.API_SERVER }}
-          CUSTOM_PUBLIC_KEY: ${{ secrets.RS_PUB_KEY }}
-
-          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
-          CLIENT_IDENTIFIER: ${{ vars.CLIENT_IDENTIFIER }}
-          CLIENT_DESCRIPTION: ${{ vars.CLIENT_DESCRIPTION }}
-          CLIENT_COMPANY: ${{ vars.CLIENT_COMPANY }}
-        run: |
-          set -euo pipefail
-
-          python3 scripts/configure_rustdesk.py \
-            --source-dir rustdesk \
-            --host "$CUSTOM_RENDEZVOUS_SERVER" \
-            --relay "$CUSTOM_RELAY_SERVER" \
-            --api "$CUSTOM_API_SERVER" \
-            --key "$CUSTOM_PUBLIC_KEY" \
-            --app-name "$CLIENT_NAME" \
-            --app-id "$CLIENT_IDENTIFIER" \
-            --description "$CLIENT_DESCRIPTION" \
-            --company "$CLIENT_COMPANY" \
-            --asset-dir branding
-
-      - name: Inject self-hosted config and branding on Windows
-        if: matrix.target == 'windows'
-        shell: pwsh
-        env:
-          CUSTOM_RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
-          CUSTOM_RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
-          CUSTOM_API_SERVER: ${{ secrets.API_SERVER }}
-          CUSTOM_PUBLIC_KEY: ${{ secrets.RS_PUB_KEY }}
-
-          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
-          CLIENT_IDENTIFIER: ${{ vars.CLIENT_IDENTIFIER }}
-          CLIENT_DESCRIPTION: ${{ vars.CLIENT_DESCRIPTION }}
-          CLIENT_COMPANY: ${{ vars.CLIENT_COMPANY }}
-        run: |
-          python scripts/configure_rustdesk.py `
-            --source-dir rustdesk `
-            --host "$env:CUSTOM_RENDEZVOUS_SERVER" `
-            --relay "$env:CUSTOM_RELAY_SERVER" `
-            --api "$env:CUSTOM_API_SERVER" `
-            --key "$env:CUSTOM_PUBLIC_KEY" `
-            --app-name "$env:CLIENT_NAME" `
-            --app-id "$env:CLIENT_IDENTIFIER" `
-            --description "$env:CLIENT_DESCRIPTION" `
-            --company "$env:CLIENT_COMPANY" `
-            --asset-dir branding
-
-      - name: Verify injection on Linux/macOS
-        if: matrix.target != 'windows'
-        shell: bash
-        env:
-          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
-        run: |
-          set -euo pipefail
-
-          grep -R "custom-rendezvous-server" rustdesk/libs/hbb_common/src/config.rs
-          grep -R "relay-server" rustdesk/libs/hbb_common/src/config.rs || true
-          grep -R "api-server" rustdesk/libs/hbb_common/src/config.rs || true
-          grep -R "RENDEZVOUS_SERVERS" rustdesk/libs/hbb_common/src/config.rs
-          grep -R "RS_PUB_KEY" rustdesk/libs/hbb_common/src/config.rs
-
-          if [ -n "$CLIENT_NAME" ]; then
-            grep -R "$CLIENT_NAME" \
-              rustdesk/Cargo.toml \
-              rustdesk/libs/hbb_common/src/config.rs \
-              rustdesk/res/rustdesk.desktop \
-              rustdesk/res/rustdesk-link.desktop || true
-          fi
-
-          ls -la rustdesk/res/icon.ico rustdesk/res/icon.png rustdesk/res/logo.svg || true
-
-      - name: Verify injection on Windows
-        if: matrix.target == 'windows'
-        shell: pwsh
-        env:
-          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
-        run: |
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "custom-rendezvous-server"
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "relay-server" -ErrorAction SilentlyContinue
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "api-server" -ErrorAction SilentlyContinue
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS"
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RS_PUB_KEY"
-
-          if ("$env:CLIENT_NAME" -ne "") {
-            Select-String `
-              -Path rustdesk/Cargo.toml,rustdesk/libs/hbb_common/src/config.rs,rustdesk/res/rustdesk.desktop,rustdesk/res/rustdesk-link.desktop `
-              -Pattern "$env:CLIENT_NAME" `
-              -ErrorAction SilentlyContinue
-          }
-
-          Get-Item rustdesk/res/icon.ico,rustdesk/res/icon.png,rustdesk/res/logo.svg -ErrorAction SilentlyContinue
+      - name: Verify injection
+        uses: ./.github/actions/verify-injection
+        with:
+          target: linux
+          client_name: ${{ vars.CLIENT_NAME }}
 
       - name: Install Linux dependencies
-        if: matrix.target == 'linux'
         shell: bash
         run: |
           set -euo pipefail
@@ -200,8 +89,158 @@ jobs:
             libva-dev \
             libunwind-dev
 
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          target: linux
+          rust_version: ${{ env.RUST_VERSION }}
+          mac_rust_version: ${{ env.MAC_RUST_VERSION }}
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        with:
+          target: linux
+          flutter_version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Setup vcpkg
+        uses: ./.github/actions/setup-vcpkg
+        with:
+          target: linux
+          vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
+
+      - name: Build Linux
+        shell: bash
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+        run: |
+          set -euo pipefail
+
+          cd rustdesk
+
+          cargo build \
+            --lib \
+            --features hwcodec,flutter,unix-file-copy-paste \
+            --release
+
+          python3 ./build.py --flutter --skip-cargo
+
+      - name: Collect artifacts
+        uses: ./.github/actions/collect-artifacts
+        with:
+          target: linux
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-linux
+          path: artifacts/
+          if-no-files-found: warn
+
+  windows:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+
+      - name: Prepare RustDesk
+        uses: ./.github/actions/prepare-rustdesk
+        with:
+          rustdesk_ref: ${{ inputs.rustdesk_ref }}
+          host: ${{ secrets.RENDEZVOUS_SERVER }}
+          relay: ${{ secrets.RELAY_SERVER }}
+          api: ${{ secrets.API_SERVER }}
+          key: ${{ secrets.RS_PUB_KEY }}
+          app_name: ${{ vars.CLIENT_NAME }}
+          app_id: ${{ vars.CLIENT_IDENTIFIER }}
+          description: ${{ vars.CLIENT_DESCRIPTION }}
+          company: ${{ vars.CLIENT_COMPANY }}
+          asset_dir: branding
+          target: windows
+
+      - name: Verify injection
+        uses: ./.github/actions/verify-injection
+        with:
+          target: windows
+          client_name: ${{ vars.CLIENT_NAME }}
+
+      - name: Install LLVM and Clang on Windows
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: ${{ env.LLVM_VERSION }}
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          target: windows
+          rust_version: ${{ env.RUST_VERSION }}
+          mac_rust_version: ${{ env.MAC_RUST_VERSION }}
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        with:
+          target: windows
+          flutter_version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Setup vcpkg
+        uses: ./.github/actions/setup-vcpkg
+        with:
+          target: windows
+          vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
+
+      - name: Build Windows
+        shell: pwsh
+        run: |
+          cd rustdesk
+
+          python .\build.py `
+            --portable `
+            --hwcodec `
+            --flutter `
+            --vram `
+            --skip-portable-pack
+
+      - name: Collect artifacts
+        uses: ./.github/actions/collect-artifacts
+        with:
+          target: windows
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-windows
+          path: artifacts/
+          if-no-files-found: warn
+
+  macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+
+      - name: Prepare RustDesk
+        uses: ./.github/actions/prepare-rustdesk
+        with:
+          rustdesk_ref: ${{ inputs.rustdesk_ref }}
+          host: ${{ secrets.RENDEZVOUS_SERVER }}
+          relay: ${{ secrets.RELAY_SERVER }}
+          api: ${{ secrets.API_SERVER }}
+          key: ${{ secrets.RS_PUB_KEY }}
+          app_name: ${{ vars.CLIENT_NAME }}
+          app_id: ${{ vars.CLIENT_IDENTIFIER }}
+          description: ${{ vars.CLIENT_DESCRIPTION }}
+          company: ${{ vars.CLIENT_COMPANY }}
+          asset_dir: branding
+          target: macos
+
+      - name: Verify injection
+        uses: ./.github/actions/verify-injection
+        with:
+          target: macos
+          client_name: ${{ vars.CLIENT_NAME }}
+
       - name: Install macOS dependencies
-        if: matrix.target == 'macos'
         shell: bash
         run: |
           set -euo pipefail
@@ -218,244 +257,26 @@ jobs:
 
           brew --prefix opus
 
-      - name: Install LLVM and Clang on Windows
-        if: matrix.target == 'windows'
-        uses: KyleMayes/install-llvm-action@v1
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
         with:
-          version: ${{ env.LLVM_VERSION }}
-
-      - name: Setup Rust on Linux/Windows
-        if: matrix.target != 'macos'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
-          rustup default "$RUST_VERSION"
-
-          if [ "${{ matrix.target }}" = "windows" ]; then
-            rustup target add x86_64-pc-windows-msvc
-          fi
-
-          rustc --version
-          cargo --version
-
-      - name: Setup Rust on macOS
-        if: matrix.target == 'macos'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          rustup toolchain install "$MAC_RUST_VERSION" --profile minimal --component rustfmt
-          rustup default "$MAC_RUST_VERSION"
-
-          if [ "$(uname -m)" = "arm64" ]; then
-            rustup target add aarch64-apple-darwin
-          else
-            rustup target add x86_64-apple-darwin
-          fi
-
-          rustc --version
-          cargo --version
+          target: macos
+          rust_version: ${{ env.RUST_VERSION }}
+          mac_rust_version: ${{ env.MAC_RUST_VERSION }}
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         with:
-          channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          target: macos
+          flutter_version: ${{ env.FLUTTER_VERSION }}
 
-      - name: Precache Flutter artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          flutter --version
-          dart --version
-
-          if [ "${{ matrix.target }}" = "windows" ]; then
-            flutter precache --windows
-          elif [ "${{ matrix.target }}" = "macos" ]; then
-            flutter precache --macos
-          else
-            flutter precache --linux
-          fi
-
-      - name: Patch Flutter
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          PATCH_FILE="$GITHUB_WORKSPACE/rustdesk/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff"
-          FLUTTER_ROOT="$(dirname "$(dirname "$(command -v flutter)")")"
-
-          if [ -f "$PATCH_FILE" ]; then
-            cd "$FLUTTER_ROOT"
-
-            if git apply --check "$PATCH_FILE"; then
-              git apply "$PATCH_FILE"
-              echo "Flutter patch applied"
-            else
-              echo "Flutter patch already applied or incompatible; continuing"
-            fi
-          else
-            echo "Flutter patch file not found; continuing"
-          fi
-
-      - name: Replace Windows Flutter engine with RustDesk engine
-        if: matrix.target == 'windows'
-        shell: pwsh
-        run: |
-          flutter doctor -v
-          flutter precache --windows
-
-          $flutterCommand = (Get-Command flutter).Source
-          $flutterBin = Split-Path $flutterCommand -Parent
-          $flutterRoot = Split-Path $flutterBin -Parent
-
-          Write-Host "Flutter root: $flutterRoot"
-
-          Invoke-WebRequest `
-            -Uri "https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip" `
-            -OutFile "windows-x64-release.zip"
-
-          Expand-Archive `
-            -Path "windows-x64-release.zip" `
-            -DestinationPath "windows-x64-release" `
-            -Force
-
-          $enginePath = Join-Path $flutterRoot "bin\cache\artifacts\engine\windows-x64-release"
-
-          New-Item -ItemType Directory -Force -Path $enginePath | Out-Null
-          Copy-Item -Path ".\windows-x64-release\*" -Destination $enginePath -Recurse -Force
-
-          Write-Host "RustDesk Windows Flutter engine installed at $enginePath"
-
-      - name: Setup vcpkg on Linux/macOS
-        if: matrix.target != 'windows'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git clone https://github.com/microsoft/vcpkg.git "$GITHUB_WORKSPACE/vcpkg"
-          cd "$GITHUB_WORKSPACE/vcpkg"
-
-          git checkout "$VCPKG_COMMIT_ID"
-          ./bootstrap-vcpkg.sh
-
-          echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> "$GITHUB_ENV"
-          echo "VCPKG_DEFAULT_BINARY_CACHE=$GITHUB_WORKSPACE/vcpkg-cache" >> "$GITHUB_ENV"
-
-          mkdir -p "$GITHUB_WORKSPACE/vcpkg-cache"
-
-      - name: Setup vcpkg on Windows
-        if: matrix.target == 'windows'
-        shell: pwsh
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git "$env:GITHUB_WORKSPACE\vcpkg"
-          cd "$env:GITHUB_WORKSPACE\vcpkg"
-
-          git checkout "$env:VCPKG_COMMIT_ID"
-          .\bootstrap-vcpkg.bat
-
-          "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "VCPKG_DEFAULT_BINARY_CACHE=$env:GITHUB_WORKSPACE\vcpkg-cache" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          New-Item -ItemType Directory -Force -Path "$env:GITHUB_WORKSPACE\vcpkg-cache" | Out-Null
-
-      - name: Install vcpkg dependencies on Linux
-        if: matrix.target == 'linux'
-        shell: bash
-        env:
-          VCPKG_DEFAULT_HOST_TRIPLET: x64-linux
-        run: |
-          set -euo pipefail
-
-          if ! "$VCPKG_ROOT/vcpkg" install \
-            --triplet x64-linux \
-            --x-install-root="$VCPKG_ROOT/installed" \
-            --x-manifest-root="$GITHUB_WORKSPACE/rustdesk"; then
-
-            find "$VCPKG_ROOT" -name "*.log" -print -exec sh -c 'echo "======"; cat "$1"; echo "======"' sh {} \;
-            exit 1
-          fi
-
-      - name: Install vcpkg dependencies on macOS
-        if: matrix.target == 'macos'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ "$(uname -m)" = "arm64" ]; then
-            VCPKG_TRIPLET="arm64-osx"
-          else
-            VCPKG_TRIPLET="x64-osx"
-          fi
-
-          echo "Using vcpkg triplet: $VCPKG_TRIPLET"
-
-          if ! "$VCPKG_ROOT/vcpkg" install \
-            --triplet "$VCPKG_TRIPLET" \
-            --x-install-root="$VCPKG_ROOT/installed" \
-            --x-manifest-root="$GITHUB_WORKSPACE/rustdesk"; then
-
-            find "$VCPKG_ROOT" -name "*.log" -print -exec sh -c 'echo "======"; cat "$1"; echo "======"' sh {} \;
-            exit 1
-          fi
-
-      - name: Install vcpkg dependencies on Windows
-        if: matrix.target == 'windows'
-        shell: pwsh
-        env:
-          VCPKG_DEFAULT_HOST_TRIPLET: x64-windows-static
-        run: |
-          & "$env:VCPKG_ROOT\vcpkg.exe" install `
-            --triplet x64-windows-static `
-            --x-install-root="$env:VCPKG_ROOT\installed" `
-            --x-manifest-root="$env:GITHUB_WORKSPACE\rustdesk"
-
-          if ($LASTEXITCODE -ne 0) {
-            Get-ChildItem -Path "$env:VCPKG_ROOT" -Recurse -Filter "*.log" | ForEach-Object {
-              Write-Host "====== $($_.FullName)"
-              Get-Content $_.FullName
-              Write-Host "======"
-            }
-
-            exit 1
-          }
-
-      - name: Build Linux
-        if: matrix.target == 'linux'
-        shell: bash
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-        run: |
-          set -euo pipefail
-
-          cd rustdesk
-
-          cargo build \
-            --lib \
-            --features hwcodec,flutter,unix-file-copy-paste \
-            --release
-
-          python3 ./build.py --flutter --skip-cargo
-
-      - name: Build Windows
-        if: matrix.target == 'windows'
-        shell: pwsh
-        run: |
-          cd rustdesk
-
-          python .\build.py `
-            --portable `
-            --hwcodec `
-            --flutter `
-            --vram `
-            --skip-portable-pack
+      - name: Setup vcpkg
+        uses: ./.github/actions/setup-vcpkg
+        with:
+          target: macos
+          vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
 
       - name: Build macOS
-        if: matrix.target == 'macos'
         shell: bash
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -477,80 +298,14 @@ jobs:
               --unix-file-copy-paste
           fi
 
-      - name: Collect Linux artifacts
-        if: matrix.target == 'linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p artifacts
-
-          find rustdesk -type f \( \
-            -name "*.deb" -o \
-            -name "*.rpm" -o \
-            -name "*.AppImage" -o \
-            -name "*.tar.gz" -o \
-            -name "*.zip" \
-          \) -exec cp {} artifacts/ \; || true
-
-          ls -la artifacts || true
-
-      - name: Collect macOS artifacts
-        if: matrix.target == 'macos'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p artifacts
-
-          find rustdesk -type f \( \
-            -name "*.dmg" -o \
-            -name "*.pkg" -o \
-            -name "*.zip" \
-          \) -exec cp {} artifacts/ \; || true
-
-          if [ -d "rustdesk/target/release/bundle/osx" ]; then
-            zip -r artifacts/rustdesk-macos-bundle.zip rustdesk/target/release/bundle/osx
-          fi
-
-          ls -la artifacts || true
-
-      - name: Collect Windows artifacts
-        if: matrix.target == 'windows'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-
-          if (Test-Path "rustdesk\flutter\build\windows\x64\runner\Release") {
-            Compress-Archive `
-              -Path "rustdesk\flutter\build\windows\x64\runner\Release\*" `
-              -DestinationPath "artifacts\rustdesk-windows-flutter-release.zip" `
-              -Force
-          }
-
-          if (Test-Path "rustdesk\rustdesk") {
-            Compress-Archive `
-              -Path "rustdesk\rustdesk\*" `
-              -DestinationPath "artifacts\rustdesk-windows-folder.zip" `
-              -Force
-          }
-
-          Get-ChildItem -Path rustdesk -Recurse -File `
-            -Include *.exe,*.msi,*.zip `
-            | Where-Object {
-                $_.FullName -notlike "*\target\debug\*" -and
-                $_.FullName -notlike "*\target\release\build\*" -and
-                $_.FullName -notlike "*\vcpkg\*"
-              } `
-            | ForEach-Object {
-                Copy-Item $_.FullName -Destination artifacts -Force -ErrorAction SilentlyContinue
-              }
-
-          Get-ChildItem artifacts -ErrorAction SilentlyContinue
+      - name: Collect artifacts
+        uses: ./.github/actions/collect-artifacts
+        with:
+          target: macos
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rustdesk-${{ matrix.target }}
+          name: rustdesk-macos
           path: artifacts/
           if-no-files-found: warn

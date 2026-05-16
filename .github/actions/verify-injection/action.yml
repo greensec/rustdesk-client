@@ -1,0 +1,59 @@
+name: Verify Injection
+description: Verify that config and branding were injected into RustDesk source
+
+inputs:
+  target:
+    description: Target platform (linux, windows, macos)
+    required: true
+  client_name:
+    description: Client name for branding verification
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Verify injection on Linux/macOS
+      if: inputs.target != 'windows'
+      shell: bash
+      env:
+        CLIENT_NAME: ${{ inputs.client_name }}
+      run: |
+        set -euo pipefail
+
+        grep -R "custom-rendezvous-server" rustdesk/libs/hbb_common/src/config.rs
+        grep -R "relay-server" rustdesk/libs/hbb_common/src/config.rs || true
+        grep -R "api-server" rustdesk/libs/hbb_common/src/config.rs || true
+        grep -R "RENDEZVOUS_SERVERS" rustdesk/libs/hbb_common/src/config.rs
+        grep -R "RS_PUB_KEY" rustdesk/libs/hbb_common/src/config.rs
+
+        if [ -n "$CLIENT_NAME" ]; then
+          grep -R "$CLIENT_NAME" \
+            rustdesk/Cargo.toml \
+            rustdesk/libs/hbb_common/src/config.rs \
+            rustdesk/res/rustdesk.desktop \
+            rustdesk/res/rustdesk-link.desktop || true
+        fi
+
+        ls -la rustdesk/res/icon.ico rustdesk/res/icon.png rustdesk/res/logo.svg || true
+
+    - name: Verify injection on Windows
+      if: inputs.target == 'windows'
+      shell: pwsh
+      env:
+        CLIENT_NAME: ${{ inputs.client_name }}
+      run: |
+        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "custom-rendezvous-server"
+        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "relay-server" -ErrorAction SilentlyContinue
+        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "api-server" -ErrorAction SilentlyContinue
+        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS"
+        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RS_PUB_KEY"
+
+        if ("$env:CLIENT_NAME" -ne "") {
+          Select-String `
+            -Path rustdesk/Cargo.toml,rustdesk/libs/hbb_common/src/config.rs,rustdesk/res/rustdesk.desktop,rustdesk/res/rustdesk-link.desktop `
+            -Pattern "$env:CLIENT_NAME" `
+            -ErrorAction SilentlyContinue
+        }
+
+        Get-Item rustdesk/res/icon.ico,rustdesk/res/icon.png,rustdesk/res/logo.svg -ErrorAction SilentlyContinue

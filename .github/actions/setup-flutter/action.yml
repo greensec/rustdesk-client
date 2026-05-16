@@ -1,0 +1,111 @@
+name: Setup Flutter
+description: Setup Flutter, disable analytics, precache, patch, and replace Windows engine
+
+inputs:
+  target:
+    description: Target platform (linux, windows, macos)
+    required: true
+  flutter_version:
+    description: Flutter version to install
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: ${{ inputs.flutter_version }}
+        cache: true
+
+    - name: Disable Flutter analytics
+      shell: bash
+      run: |
+        set -euo pipefail
+        flutter --disable-analytics
+        dart --disable-analytics || true
+        flutter config --no-analytics
+        flutter config --no-cli-animations
+
+    - name: Precache Flutter artifacts
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        flutter --version
+        dart --version
+
+        if [ "${{ inputs.target }}" = "windows" ]; then
+          flutter precache --windows
+        elif [ "${{ inputs.target }}" = "macos" ]; then
+          flutter precache --macos
+        else
+          flutter precache --linux
+        fi
+
+    - name: Precache Flutter artifacts
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        flutter --version
+        dart --version
+
+        if [ "${{ inputs.target }}" = "windows" ]; then
+          flutter precache --windows
+        elif [ "${{ inputs.target }}" = "macos" ]; then
+          flutter precache --macos
+        else
+          flutter precache --linux
+        fi
+
+    - name: Patch Flutter
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        PATCH_FILE="$GITHUB_WORKSPACE/rustdesk/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff"
+        FLUTTER_ROOT="$(dirname "$(dirname "$(command -v flutter)")")"
+
+        if [ -f "$PATCH_FILE" ]; then
+          cd "$FLUTTER_ROOT"
+
+          if git apply --check "$PATCH_FILE"; then
+            git apply "$PATCH_FILE"
+            echo "Flutter patch applied"
+          else
+            echo "Flutter patch already applied or incompatible; continuing"
+          fi
+        else
+          echo "Flutter patch file not found; continuing"
+        fi
+
+    - name: Replace Windows Flutter engine with RustDesk engine
+      if: inputs.target == 'windows'
+      shell: pwsh
+      run: |
+        flutter doctor -v
+        flutter precache --windows
+
+        $flutterCommand = (Get-Command flutter).Source
+        $flutterBin = Split-Path $flutterCommand -Parent
+        $flutterRoot = Split-Path $flutterBin -Parent
+
+        Write-Host "Flutter root: $flutterRoot"
+
+        Invoke-WebRequest `
+          -Uri "https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip" `
+          -OutFile "windows-x64-release.zip"
+
+        Expand-Archive `
+          -Path "windows-x64-release.zip" `
+          -DestinationPath "windows-x64-release" `
+          -Force
+
+        $enginePath = Join-Path $flutterRoot "bin\cache\artifacts\engine\windows-x64-release"
+
+        New-Item -ItemType Directory -Force -Path $enginePath | Out-Null
+        Copy-Item -Path ".\windows-x64-release\*" -Destination $enginePath -Recurse -Force
+
+        Write-Host "RustDesk Windows Flutter engine installed at $enginePath"
