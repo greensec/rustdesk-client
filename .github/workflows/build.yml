@@ -8,6 +8,13 @@ on:
         required: true
         default: "1.4.6"
 
+env:
+  FLUTTER_VERSION: "3.24.5"
+  RUST_VERSION: "1.75.0"
+  MAC_RUST_VERSION: "1.81.0"
+  LLVM_VERSION: "15.0.6"
+  VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
+
 jobs:
   build:
     strategy:
@@ -15,11 +22,11 @@ jobs:
       matrix:
         include:
           - target: linux
-            os: ubuntu-latest
+            os: ubuntu-22.04
           - target: windows
-            os: windows-latest
+            os: windows-2022
           - target: macos
-            os: macos-latest
+            os: macos-14
 
     runs-on: ${{ matrix.os }}
 
@@ -42,6 +49,8 @@ jobs:
       - name: Show RustDesk commit
         shell: bash
         run: |
+          set -euo pipefail
+
           cd rustdesk
           git rev-parse HEAD
           git submodule status --recursive
@@ -154,6 +163,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             zip \
+            unzip \
             git \
             curl \
             wget \
@@ -197,13 +207,8 @@ jobs:
           set -euo pipefail
 
           brew update
-          brew install llvm create-dmg opus yasm
+          brew install llvm create-dmg opus yasm pkg-config
 
-          if ! command -v pkg-config >/dev/null 2>&1; then
-            brew install pkg-config
-          fi
-
-          # RustDesk official workflow avoids Homebrew NASM 3.x and installs NASM 2.16.03 manually.
           curl -L -o nasm-2.16.03-macosx.zip \
             https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/macosx/nasm-2.16.03-macosx.zip
 
@@ -213,22 +218,227 @@ jobs:
 
           brew --prefix opus
 
-      - name: Install Rust packaging tools
+      - name: Install LLVM and Clang on Windows
+        if: matrix.target == 'windows'
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: ${{ env.LLVM_VERSION }}
+
+      - name: Setup Rust on Linux/Windows
+        if: matrix.target != 'macos'
         shell: bash
         run: |
           set -euo pipefail
 
-          if ! cargo bundle --version >/dev/null 2>&1; then
-            cargo install cargo-bundle --locked
+          rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
+          rustup default "$RUST_VERSION"
+
+          if [ "${{ matrix.target }}" = "windows" ]; then
+            rustup target add x86_64-pc-windows-msvc
           fi
+
+          rustc --version
+          cargo --version
+
+      - name: Setup Rust on macOS
+        if: matrix.target == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rustup toolchain install "$MAC_RUST_VERSION" --profile minimal --component rustfmt
+          rustup default "$MAC_RUST_VERSION"
+
+          if [ "$(uname -m)" = "arm64" ]; then
+            rustup target add aarch64-apple-darwin
+          else
+            rustup target add x86_64-apple-darwin
+          fi
+
+          rustc --version
+          cargo --version
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Precache Flutter artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          flutter --version
+          dart --version
+
+          if [ "${{ matrix.target }}" = "windows" ]; then
+            flutter precache --windows
+          elif [ "${{ matrix.target }}" = "macos" ]; then
+            flutter precache --macos
+          else
+            flutter precache --linux
+          fi
+
+      - name: Patch Flutter
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PATCH_FILE="$GITHUB_WORKSPACE/rustdesk/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff"
+          FLUTTER_ROOT="$(dirname "$(dirname "$(command -v flutter)")")"
+
+          if [ -f "$PATCH_FILE" ]; then
+            cd "$FLUTTER_ROOT"
+
+            if git apply --check "$PATCH_FILE"; then
+              git apply "$PATCH_FILE"
+              echo "Flutter patch applied"
+            else
+              echo "Flutter patch already applied or incompatible; continuing"
+            fi
+          else
+            echo "Flutter patch file not found; continuing"
+          fi
+
+      - name: Replace Windows Flutter engine with RustDesk engine
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          flutter doctor -v
+          flutter precache --windows
+
+          $flutterCommand = (Get-Command flutter).Source
+          $flutterBin = Split-Path $flutterCommand -Parent
+          $flutterRoot = Split-Path $flutterBin -Parent
+
+          Write-Host "Flutter root: $flutterRoot"
+
+          Invoke-WebRequest `
+            -Uri "https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip" `
+            -OutFile "windows-x64-release.zip"
+
+          Expand-Archive `
+            -Path "windows-x64-release.zip" `
+            -DestinationPath "windows-x64-release" `
+            -Force
+
+          $enginePath = Join-Path $flutterRoot "bin\cache\artifacts\engine\windows-x64-release"
+
+          New-Item -ItemType Directory -Force -Path $enginePath | Out-Null
+          Copy-Item -Path ".\windows-x64-release\*" -Destination $enginePath -Recurse -Force
+
+          Write-Host "RustDesk Windows Flutter engine installed at $enginePath"
+
+      - name: Setup vcpkg on Linux/macOS
+        if: matrix.target != 'windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git clone https://github.com/microsoft/vcpkg.git "$GITHUB_WORKSPACE/vcpkg"
+          cd "$GITHUB_WORKSPACE/vcpkg"
+
+          git checkout "$VCPKG_COMMIT_ID"
+          ./bootstrap-vcpkg.sh
+
+          echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> "$GITHUB_ENV"
+          echo "VCPKG_DEFAULT_BINARY_CACHE=$GITHUB_WORKSPACE/vcpkg-cache" >> "$GITHUB_ENV"
+
+          mkdir -p "$GITHUB_WORKSPACE/vcpkg-cache"
+
+      - name: Setup vcpkg on Windows
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:GITHUB_WORKSPACE\vcpkg"
+          cd "$env:GITHUB_WORKSPACE\vcpkg"
+
+          git checkout "$env:VCPKG_COMMIT_ID"
+          .\bootstrap-vcpkg.bat
+
+          "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "VCPKG_DEFAULT_BINARY_CACHE=$env:GITHUB_WORKSPACE\vcpkg-cache" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          New-Item -ItemType Directory -Force -Path "$env:GITHUB_WORKSPACE\vcpkg-cache" | Out-Null
+
+      - name: Install vcpkg dependencies on Linux
+        if: matrix.target == 'linux'
+        shell: bash
+        env:
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-linux
+        run: |
+          set -euo pipefail
+
+          if ! "$VCPKG_ROOT/vcpkg" install \
+            --triplet x64-linux \
+            --x-install-root="$VCPKG_ROOT/installed" \
+            --x-manifest-root="$GITHUB_WORKSPACE/rustdesk"; then
+
+            find "$VCPKG_ROOT" -name "*.log" -print -exec sh -c 'echo "======"; cat "$1"; echo "======"' sh {} \;
+            exit 1
+          fi
+
+      - name: Install vcpkg dependencies on macOS
+        if: matrix.target == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$(uname -m)" = "arm64" ]; then
+            VCPKG_TRIPLET="arm64-osx"
+          else
+            VCPKG_TRIPLET="x64-osx"
+          fi
+
+          echo "Using vcpkg triplet: $VCPKG_TRIPLET"
+
+          if ! "$VCPKG_ROOT/vcpkg" install \
+            --triplet "$VCPKG_TRIPLET" \
+            --x-install-root="$VCPKG_ROOT/installed" \
+            --x-manifest-root="$GITHUB_WORKSPACE/rustdesk"; then
+
+            find "$VCPKG_ROOT" -name "*.log" -print -exec sh -c 'echo "======"; cat "$1"; echo "======"' sh {} \;
+            exit 1
+          fi
+
+      - name: Install vcpkg dependencies on Windows
+        if: matrix.target == 'windows'
+        shell: pwsh
+        env:
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-windows-static
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg.exe" install `
+            --triplet x64-windows-static `
+            --x-install-root="$env:VCPKG_ROOT\installed" `
+            --x-manifest-root="$env:GITHUB_WORKSPACE\rustdesk"
+
+          if ($LASTEXITCODE -ne 0) {
+            Get-ChildItem -Path "$env:VCPKG_ROOT" -Recurse -Filter "*.log" | ForEach-Object {
+              Write-Host "====== $($_.FullName)"
+              Get-Content $_.FullName
+              Write-Host "======"
+            }
+
+            exit 1
+          }
 
       - name: Build Linux
         if: matrix.target == 'linux'
         shell: bash
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         run: |
           set -euo pipefail
+
           cd rustdesk
-          cargo build --lib --features hwcodec,flutter,unix-file-copy-paste --release
+
+          cargo build \
+            --lib \
+            --features hwcodec,flutter,unix-file-copy-paste \
+            --release
+
           python3 ./build.py --flutter --skip-cargo
 
       - name: Build Windows
@@ -236,18 +446,39 @@ jobs:
         shell: pwsh
         run: |
           cd rustdesk
-          python3 .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
+
+          python .\build.py `
+            --portable `
+            --hwcodec `
+            --flutter `
+            --vram `
+            --skip-portable-pack
 
       - name: Build macOS
         if: matrix.target == 'macos'
         shell: bash
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         run: |
           set -euo pipefail
-          cd rustdesk
-          ./build.py --flutter --hwcodec --unix-file-copy-paste
 
-      - name: Collect Linux/macOS artifacts
-        if: matrix.target != 'windows'
+          cd rustdesk
+
+          if [ "$(uname -m)" = "arm64" ]; then
+            python3 ./build.py \
+              --flutter \
+              --hwcodec \
+              --unix-file-copy-paste \
+              --screencapturekit
+          else
+            python3 ./build.py \
+              --flutter \
+              --hwcodec \
+              --unix-file-copy-paste
+          fi
+
+      - name: Collect Linux artifacts
+        if: matrix.target == 'linux'
         shell: bash
         run: |
           set -euo pipefail
@@ -256,11 +487,31 @@ jobs:
 
           find rustdesk -type f \( \
             -name "*.deb" -o \
+            -name "*.rpm" -o \
             -name "*.AppImage" -o \
+            -name "*.tar.gz" -o \
+            -name "*.zip" \
+          \) -exec cp {} artifacts/ \; || true
+
+          ls -la artifacts || true
+
+      - name: Collect macOS artifacts
+        if: matrix.target == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p artifacts
+
+          find rustdesk -type f \( \
             -name "*.dmg" -o \
             -name "*.pkg" -o \
             -name "*.zip" \
           \) -exec cp {} artifacts/ \; || true
+
+          if [ -d "rustdesk/target/release/bundle/osx" ]; then
+            zip -r artifacts/rustdesk-macos-bundle.zip rustdesk/target/release/bundle/osx
+          fi
 
           ls -la artifacts || true
 
@@ -270,10 +521,29 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
 
+          if (Test-Path "rustdesk\flutter\build\windows\x64\runner\Release") {
+            Compress-Archive `
+              -Path "rustdesk\flutter\build\windows\x64\runner\Release\*" `
+              -DestinationPath "artifacts\rustdesk-windows-flutter-release.zip" `
+              -Force
+          }
+
+          if (Test-Path "rustdesk\rustdesk") {
+            Compress-Archive `
+              -Path "rustdesk\rustdesk\*" `
+              -DestinationPath "artifacts\rustdesk-windows-folder.zip" `
+              -Force
+          }
+
           Get-ChildItem -Path rustdesk -Recurse -File `
             -Include *.exe,*.msi,*.zip `
+            | Where-Object {
+                $_.FullName -notlike "*\target\debug\*" -and
+                $_.FullName -notlike "*\target\release\build\*" -and
+                $_.FullName -notlike "*\vcpkg\*"
+              } `
             | ForEach-Object {
-                Copy-Item $_.FullName -Destination artifacts -Force
+                Copy-Item $_.FullName -Destination artifacts -Force -ErrorAction SilentlyContinue
               }
 
           Get-ChildItem artifacts -ErrorAction SilentlyContinue
