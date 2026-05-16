@@ -5,15 +5,24 @@ from __future__ import annotations
 import argparse
 import pathlib
 import re
+import shutil
 import sys
 
 
 def rust_string(value: str) -> str:
-    return value.strip().replace("\\", "\\\\").replace('"', '\\"')
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def read_text(path: pathlib.Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def write_text(path: pathlib.Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
 
 
 def replace_one(path: pathlib.Path, pattern: str, replacement: str, label: str) -> None:
-    text = path.read_text(encoding="utf-8")
+    text = read_text(path)
 
     new_text, count = re.subn(
         pattern,
@@ -28,124 +37,341 @@ def replace_one(path: pathlib.Path, pattern: str, replacement: str, label: str) 
             f"but replaced {count}."
         )
 
-    path.write_text(new_text, encoding="utf-8")
+    write_text(path, new_text)
     print(f"Updated {label}")
 
 
-def replace_optional(path: pathlib.Path, patterns: list[tuple[str, str, str]], value_name: str) -> bool:
-    text = path.read_text(encoding="utf-8")
+def replace_optional(path: pathlib.Path, pattern: str, replacement: str, label: str) -> int:
+    if not path.exists():
+        print(f"Skipped {label}; file not found: {path}")
+        return 0
 
-    for pattern, replacement, label in patterns:
-        new_text, count = re.subn(
-            pattern,
-            replacement,
-            text,
-            flags=re.MULTILINE | re.DOTALL,
-        )
+    text = read_text(path)
 
-        if count == 1:
-            path.write_text(new_text, encoding="utf-8")
-            print(f"Updated {label}")
-            return True
-
-        if count > 1:
-            raise RuntimeError(
-                f"Expected zero or one occurrence of {label} in {path}, "
-                f"but found/replaced {count}."
-            )
-
-    print(
-        f"{value_name} was provided, but no known matching constant was found. "
-        "This may be okay for this RustDesk version."
+    new_text, count = re.subn(
+        pattern,
+        replacement,
+        text,
+        flags=re.MULTILINE | re.DOTALL,
     )
-    return False
+
+    if count:
+        write_text(path, new_text)
+        print(f"Updated {label} ({count})")
+    else:
+        print(f"Skipped {label}; no matching pattern found")
+
+    return count
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--source-dir", required=True)
-    parser.add_argument("--host", required=True)
-    parser.add_argument("--key", required=True)
-    parser.add_argument("--relay", default="")
-    parser.add_argument("--api", default="")
-    args = parser.parse_args()
+def update_desktop_file(path: pathlib.Path, app_name: str, description: str) -> None:
+    if not path.exists():
+        print(f"Skipped desktop file; not found: {path}")
+        return
 
-    source_dir = pathlib.Path(args.source_dir).resolve()
+    if not app_name and not description:
+        return
+
+    text = read_text(path)
+
+    if app_name:
+        text = re.sub(r"^Name=.*$", f"Name={app_name}", text, flags=re.MULTILINE)
+
+    if description:
+        text = re.sub(r"^Comment=.*$", f"Comment={description}", text, flags=re.MULTILINE)
+
+    write_text(path, text)
+    print(f"Updated desktop file: {path}")
+
+
+def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None:
+    if not asset_dir_value:
+        return
+
+    asset_dir = pathlib.Path(asset_dir_value).resolve()
+
+    if not asset_dir.exists():
+        print(f"Branding asset directory not found, skipped: {asset_dir}")
+        return
+
+    mapping = {
+        "icon.ico": "res/icon.ico",
+        "tray-icon.ico": "res/tray-icon.ico",
+        "icon.png": "res/icon.png",
+        "32x32.png": "res/32x32.png",
+        "64x64.png": "res/64x64.png",
+        "128x128.png": "res/128x128.png",
+        "128x128@2x.png": "res/128x128@2x.png",
+        "logo.svg": "res/logo.svg",
+        "logo-header.svg": "res/logo-header.svg",
+        "rustdesk-banner.svg": "res/rustdesk-banner.svg",
+        "mac-icon.png": "res/mac-icon.png",
+        "mac-tray-dark-x2.png": "res/mac-tray-dark-x2.png",
+        "mac-tray-light-x2.png": "res/mac-tray-light-x2.png",
+    }
+
+    copied = 0
+
+    for src_name, dst_name in mapping.items():
+        src = asset_dir / src_name
+        dst = source_dir / dst_name
+
+        if src.exists():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+            copied += 1
+            print(f"Copied branding asset: {src_name} -> {dst_name}")
+
+    if copied == 0:
+        print(f"No known branding assets found in {asset_dir}")
+    else:
+        print(f"Copied {copied} branding asset(s)")
+
+
+def inject_default_settings(
+    config_file: pathlib.Path,
+    host: str,
+    key: str,
+    relay: str,
+    api: str,
+) -> None:
+    entries: list[tuple[str, str]] = [
+        ("custom-rendezvous-server", host),
+        ("key", key),
+    ]
+
+    if relay:
+        entries.append(("relay-server", relay))
+
+    if api:
+        entries.append(("api-server", api))
+
+    rust_entries = ", ".join(
+        f'("{rust_string(k)}".to_owned(), "{rust_string(v)}".to_owned())'
+        for k, v in entries
+    )
+
+    replacement = (
+        "pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = "
+        f"RwLock::new(HashMap::from([{rust_entries}]));"
+    )
+
+    replace_one(
+        config_file,
+        r"pub\s+static\s+ref\s+DEFAULT_SETTINGS\s*:\s*RwLock\s*<\s*HashMap\s*<\s*String\s*,\s*String\s*>\s*>\s*=\s*Default::default\s*\(\s*\)\s*;",
+        replacement,
+        "DEFAULT_SETTINGS",
+    )
+
+
+def apply_server_config(
+    source_dir: pathlib.Path,
+    host: str,
+    key: str,
+    relay: str,
+    api: str,
+) -> None:
     config_file = source_dir / "libs" / "hbb_common" / "src" / "config.rs"
 
     if not config_file.exists():
-        print(f"Config file not found: {config_file}", file=sys.stderr)
-        return 1
-
-    host = rust_string(args.host)
-    key = rust_string(args.key)
-    relay = rust_string(args.relay)
-    api = rust_string(args.api)
+        raise FileNotFoundError(f"Config file not found: {config_file}")
 
     if not host:
-        print("Missing --host", file=sys.stderr)
-        return 1
+        raise ValueError("Missing --host / RENDEZVOUS_SERVER")
 
     if not key:
-        print("Missing --key", file=sys.stderr)
-        return 1
+        raise ValueError("Missing --key / RS_PUB_KEY")
 
     replace_one(
         config_file,
         r'pub\s+const\s+RENDEZVOUS_SERVERS\s*:\s*&\s*\[\s*&str\s*\]\s*=\s*&\s*\[.*?\]\s*;',
-        f'pub const RENDEZVOUS_SERVERS: &[&str] = &["{host}"];',
+        f'pub const RENDEZVOUS_SERVERS: &[&str] = &["{rust_string(host)}"];',
         "RENDEZVOUS_SERVERS",
     )
 
     replace_one(
         config_file,
         r'pub\s+const\s+RS_PUB_KEY\s*:\s*&str\s*=\s*".*?"\s*;',
-        f'pub const RS_PUB_KEY: &str = "{key}";',
+        f'pub const RS_PUB_KEY: &str = "{rust_string(key)}";',
         "RS_PUB_KEY",
     )
 
-    if relay:
+    inject_default_settings(
+        config_file=config_file,
+        host=host,
+        key=key,
+        relay=relay,
+        api=api,
+    )
+
+    print("Self-hosted server configuration injected")
+
+
+def apply_branding(
+    source_dir: pathlib.Path,
+    app_name: str,
+    app_id: str,
+    description: str,
+    company: str,
+    asset_dir: str,
+) -> None:
+    if not any([app_name, app_id, description, company, asset_dir]):
+        print("No branding values/assets provided; branding skipped")
+        return
+
+    cargo_file = source_dir / "Cargo.toml"
+    config_file = source_dir / "libs" / "hbb_common" / "src" / "config.rs"
+
+    if not cargo_file.exists():
+        raise FileNotFoundError(f"Cargo.toml not found: {cargo_file}")
+
+    if not config_file.exists():
+        raise FileNotFoundError(f"Config file not found: {config_file}")
+
+    if app_name:
         replace_optional(
             config_file,
-            [
-                (
-                    r'pub\s+const\s+RELAY_SERVERS\s*:\s*&\s*\[\s*&str\s*\]\s*=\s*&\s*\[.*?\]\s*;',
-                    f'pub const RELAY_SERVERS: &[&str] = &["{relay}"];',
-                    "RELAY_SERVERS",
-                ),
-                (
-                    r'pub\s+const\s+RELAY_SERVER\s*:\s*&str\s*=\s*".*?"\s*;',
-                    f'pub const RELAY_SERVER: &str = "{relay}";',
-                    "RELAY_SERVER",
-                ),
-            ],
-            "Relay server",
+            r'pub\s+static\s+ref\s+APP_NAME\s*:\s*RwLock\s*<\s*String\s*>\s*=\s*RwLock::new\(".*?"\.to_owned\(\)\)\s*;',
+            f'pub static ref APP_NAME: RwLock<String> = RwLock::new("{rust_string(app_name)}".to_owned());',
+            "APP_NAME",
         )
 
-    if api:
         replace_optional(
-            config_file,
-            [
-                (
-                    r'pub\s+const\s+API_SERVER\s*:\s*&str\s*=\s*".*?"\s*;',
-                    f'pub const API_SERVER: &str = "{api}";',
-                    "API_SERVER",
-                ),
-                (
-                    r'pub\s+const\s+API_SERVERS\s*:\s*&\s*\[\s*&str\s*\]\s*=\s*&\s*\[.*?\]\s*;',
-                    f'pub const API_SERVERS: &[&str] = &["{api}"];',
-                    "API_SERVERS",
-                ),
-                (
-                    r'pub\s+const\s+DEFAULT_API_SERVER\s*:\s*&str\s*=\s*".*?"\s*;',
-                    f'pub const DEFAULT_API_SERVER: &str = "{api}";',
-                    "DEFAULT_API_SERVER",
-                ),
-            ],
-            "API server",
+            cargo_file,
+            r'ProductName\s*=\s*".*?"',
+            f'ProductName = "{rust_string(app_name)}"',
+            "Windows ProductName",
         )
 
-    print("Self-hosted RustDesk config injection finished.")
+        replace_optional(
+            cargo_file,
+            r'\bname\s*=\s*"RustDesk"',
+            f'name = "{rust_string(app_name)}"',
+            "bundle name",
+        )
+
+    if description:
+        replace_optional(
+            cargo_file,
+            r'FileDescription\s*=\s*".*?"',
+            f'FileDescription = "{rust_string(description)}"',
+            "Windows FileDescription",
+        )
+
+        replace_optional(
+            cargo_file,
+            r'\bdescription\s*=\s*".*?"',
+            f'description = "{rust_string(description)}"',
+            "package description",
+        )
+
+    if app_id:
+        replace_optional(
+            cargo_file,
+            r'identifier\s*=\s*".*?"',
+            f'identifier = "{rust_string(app_id)}"',
+            "bundle identifier",
+        )
+
+        parts = app_id.split(".")
+        if len(parts) >= 2:
+            mac_org = ".".join(parts[:-1])
+            replace_optional(
+                config_file,
+                r'pub\s+static\s+ref\s+ORG\s*:\s*RwLock\s*<\s*String\s*>\s*=\s*RwLock::new\(".*?"\.to_owned\(\)\)\s*;',
+                f'pub static ref ORG: RwLock<String> = RwLock::new("{rust_string(mac_org)}".to_owned());',
+                "macOS ORG",
+            )
+
+    if company:
+        replace_optional(
+            cargo_file,
+            r'LegalCopyright\s*=\s*".*?"',
+            f'LegalCopyright = "Copyright © {rust_string(company)}. All rights reserved."',
+            "Windows LegalCopyright",
+        )
+
+    update_desktop_file(
+        source_dir / "res" / "rustdesk.desktop",
+        app_name=app_name,
+        description=description,
+    )
+
+    update_desktop_file(
+        source_dir / "res" / "rustdesk-link.desktop",
+        app_name=app_name,
+        description=description,
+    )
+
+    copy_branding_assets(source_dir=source_dir, asset_dir_value=asset_dir)
+
+    print("Branding injection finished")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Inject self-hosted RustDesk server config and optional branding."
+    )
+
+    parser.add_argument("--source-dir", required=True)
+
+    parser.add_argument("--host", required=True)
+    parser.add_argument("--key", required=True)
+    parser.add_argument("--relay", default="")
+    parser.add_argument("--api", default="")
+
+    parser.add_argument("--app-name", default="")
+    parser.add_argument("--app-id", default="")
+    parser.add_argument("--description", default="")
+    parser.add_argument("--company", default="")
+    parser.add_argument("--asset-dir", default="")
+
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+
+    source_dir = pathlib.Path(args.source_dir).resolve()
+
+    if not source_dir.exists():
+        print(f"Source directory not found: {source_dir}", file=sys.stderr)
+        return 1
+
+    host = args.host.strip()
+    key = args.key.strip()
+    relay = args.relay.strip()
+    api = args.api.strip()
+
+    app_name = args.app_name.strip()
+    app_id = args.app_id.strip()
+    description = args.description.strip()
+    company = args.company.strip()
+    asset_dir = args.asset_dir.strip()
+
+    try:
+        apply_server_config(
+            source_dir=source_dir,
+            host=host,
+            key=key,
+            relay=relay,
+            api=api,
+        )
+
+        apply_branding(
+            source_dir=source_dir,
+            app_name=app_name,
+            app_id=app_id,
+            description=description,
+            company=company,
+            asset_dir=asset_dir,
+        )
+
+    except Exception as exc:
+        print(f"Configuration failed: {exc}", file=sys.stderr)
+        return 1
+
+    print("RustDesk customization finished successfully")
     return 0
 
 

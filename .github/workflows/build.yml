@@ -6,7 +6,7 @@ on:
       rustdesk_ref:
         description: "RustDesk tag, branch, or commit to build"
         required: true
-        default: "master"
+        default: "1.4.6"
 
 jobs:
   build:
@@ -28,65 +28,136 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout RustDesk source
+        shell: bash
+        env:
+          RUSTDESK_REF: ${{ inputs.rustdesk_ref }}
         run: |
+          set -euo pipefail
+
           git clone --recursive https://github.com/rustdesk/rustdesk.git rustdesk
           cd rustdesk
-          git checkout "${{ github.event.inputs.rustdesk_ref }}"
+          git checkout "$RUSTDESK_REF"
           git submodule update --init --recursive
 
       - name: Show RustDesk commit
+        shell: bash
         run: |
           cd rustdesk
           git rev-parse HEAD
-      - name: Inject self-hosted RustDesk config on Linux/macOS
+          git submodule status --recursive
+
+      - name: Inject self-hosted config and branding on Linux/macOS
         if: matrix.target != 'windows'
+        shell: bash
+        env:
+          CUSTOM_RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+          CUSTOM_RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
+          CUSTOM_API_SERVER: ${{ secrets.API_SERVER }}
+          CUSTOM_PUBLIC_KEY: ${{ secrets.RS_PUB_KEY }}
+
+          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
+          CLIENT_IDENTIFIER: ${{ vars.CLIENT_IDENTIFIER }}
+          CLIENT_DESCRIPTION: ${{ vars.CLIENT_DESCRIPTION }}
+          CLIENT_COMPANY: ${{ vars.CLIENT_COMPANY }}
         run: |
+          set -euo pipefail
+
           python3 scripts/configure_rustdesk.py \
             --source-dir rustdesk \
-            --host "${{ secrets.RENDEZVOUS_SERVER }}" \
-            --relay "${{ secrets.RELAY_SERVER }}" \
-            --api "${{ secrets.API_SERVER }}" \
-            --key "${{ secrets.RS_PUB_KEY }}"
+            --host "$CUSTOM_RENDEZVOUS_SERVER" \
+            --relay "$CUSTOM_RELAY_SERVER" \
+            --api "$CUSTOM_API_SERVER" \
+            --key "$CUSTOM_PUBLIC_KEY" \
+            --app-name "$CLIENT_NAME" \
+            --app-id "$CLIENT_IDENTIFIER" \
+            --description "$CLIENT_DESCRIPTION" \
+            --company "$CLIENT_COMPANY" \
+            --asset-dir branding
 
-      - name: Inject self-hosted RustDesk config on Windows
+      - name: Inject self-hosted config and branding on Windows
         if: matrix.target == 'windows'
         shell: pwsh
+        env:
+          CUSTOM_RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+          CUSTOM_RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
+          CUSTOM_API_SERVER: ${{ secrets.API_SERVER }}
+          CUSTOM_PUBLIC_KEY: ${{ secrets.RS_PUB_KEY }}
+
+          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
+          CLIENT_IDENTIFIER: ${{ vars.CLIENT_IDENTIFIER }}
+          CLIENT_DESCRIPTION: ${{ vars.CLIENT_DESCRIPTION }}
+          CLIENT_COMPANY: ${{ vars.CLIENT_COMPANY }}
         run: |
           python scripts/configure_rustdesk.py `
             --source-dir rustdesk `
-            --host "${{ secrets.RENDEZVOUS_SERVER }}" `
-            --relay "${{ secrets.RELAY_SERVER }}" `
-            --api "${{ secrets.API_SERVER }}" `
-            --key "${{ secrets.RS_PUB_KEY }}"
+            --host "$env:CUSTOM_RENDEZVOUS_SERVER" `
+            --relay "$env:CUSTOM_RELAY_SERVER" `
+            --api "$env:CUSTOM_API_SERVER" `
+            --key "$env:CUSTOM_PUBLIC_KEY" `
+            --app-name "$env:CLIENT_NAME" `
+            --app-id "$env:CLIENT_IDENTIFIER" `
+            --description "$env:CLIENT_DESCRIPTION" `
+            --company "$env:CLIENT_COMPANY" `
+            --asset-dir branding
 
-      - name: Verify injected config on Linux/macOS
+      - name: Verify injection on Linux/macOS
         if: matrix.target != 'windows'
+        shell: bash
+        env:
+          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
         run: |
-          grep -R "${{ secrets.RENDEZVOUS_SERVER }}" rustdesk/libs/hbb_common/src/config.rs
+          set -euo pipefail
 
-          if [ -n "${{ secrets.API_SERVER }}" ]; then
-            grep -R "${{ secrets.API_SERVER }}" rustdesk/libs/hbb_common/src/config.rs || true
+          grep -R "custom-rendezvous-server" rustdesk/libs/hbb_common/src/config.rs
+          grep -R "relay-server" rustdesk/libs/hbb_common/src/config.rs || true
+          grep -R "api-server" rustdesk/libs/hbb_common/src/config.rs || true
+          grep -R "RENDEZVOUS_SERVERS" rustdesk/libs/hbb_common/src/config.rs
+          grep -R "RS_PUB_KEY" rustdesk/libs/hbb_common/src/config.rs
+
+          if [ -n "$CLIENT_NAME" ]; then
+            grep -R "$CLIENT_NAME" \
+              rustdesk/Cargo.toml \
+              rustdesk/libs/hbb_common/src/config.rs \
+              rustdesk/res/rustdesk.desktop \
+              rustdesk/res/rustdesk-link.desktop || true
           fi
 
-      - name: Verify injected config on Windows
+          ls -la rustdesk/res/icon.ico rustdesk/res/icon.png rustdesk/res/logo.svg || true
+
+      - name: Verify injection on Windows
         if: matrix.target == 'windows'
         shell: pwsh
+        env:
+          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
         run: |
-          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "${{ secrets.RENDEZVOUS_SERVER }}"
+          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "custom-rendezvous-server"
+          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "relay-server" -ErrorAction SilentlyContinue
+          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "api-server" -ErrorAction SilentlyContinue
+          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS"
+          Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RS_PUB_KEY"
 
-          if ("${{ secrets.API_SERVER }}" -ne "") {
-            Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "${{ secrets.API_SERVER }}" -ErrorAction SilentlyContinue
+          if ("$env:CLIENT_NAME" -ne "") {
+            Select-String `
+              -Path rustdesk/Cargo.toml,rustdesk/libs/hbb_common/src/config.rs,rustdesk/res/rustdesk.desktop,rustdesk/res/rustdesk-link.desktop `
+              -Pattern "$env:CLIENT_NAME" `
+              -ErrorAction SilentlyContinue
           }
+
+          Get-Item rustdesk/res/icon.ico,rustdesk/res/icon.png,rustdesk/res/logo.svg -ErrorAction SilentlyContinue
 
       - name: Install Linux dependencies
         if: matrix.target == 'linux'
+        shell: bash
         run: |
+          set -euo pipefail
+
           sudo apt-get update
           sudo apt-get install -y \
             git curl wget ca-certificates \
             build-essential pkg-config cmake ninja-build \
             clang libclang-dev nasm yasm \
             python3 python3-pip \
+            libssl-dev \
             libglib2.0-dev \
             libgtk-3-dev \
             libayatana-appindicator3-dev \
@@ -95,15 +166,41 @@ jobs:
             libxdo-dev \
             libxfixes-dev \
             libasound2-dev \
-            libpulse-dev
+            libpulse-dev \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev
+
+      - name: Install macOS dependencies
+        if: matrix.target == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          brew update
+          brew list opus >/dev/null 2>&1 || brew install opus
+
+          echo "Homebrew prefix:"
+          brew --prefix
+
+          echo "Opus prefix:"
+          brew --prefix opus
+
+          ls -la "$(brew --prefix opus)"
 
       - name: Install Rust packaging tools
+        shell: bash
         run: |
-          cargo install cargo-bundle --locked
+          set -euo pipefail
+
+          if ! cargo bundle --version >/dev/null 2>&1; then
+            cargo install cargo-bundle --locked
+          fi
 
       - name: Build Linux
         if: matrix.target == 'linux'
+        shell: bash
         run: |
+          set -euo pipefail
           cd rustdesk
           python3 build.py
 
@@ -116,14 +213,20 @@ jobs:
 
       - name: Build macOS
         if: matrix.target == 'macos'
+        shell: bash
         run: |
+          set -euo pipefail
           cd rustdesk
           python3 build.py
 
       - name: Collect Linux/macOS artifacts
         if: matrix.target != 'windows'
+        shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p artifacts
+
           find rustdesk -type f \( \
             -name "*.deb" -o \
             -name "*.AppImage" -o \
@@ -131,6 +234,8 @@ jobs:
             -name "*.pkg" -o \
             -name "*.zip" \
           \) -exec cp {} artifacts/ \; || true
+
+          ls -la artifacts || true
 
       - name: Collect Windows artifacts
         if: matrix.target == 'windows'
@@ -143,6 +248,8 @@ jobs:
             | ForEach-Object {
                 Copy-Item $_.FullName -Destination artifacts -Force
               }
+
+          Get-ChildItem artifacts -ErrorAction SilentlyContinue
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
