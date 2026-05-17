@@ -335,7 +335,7 @@ jobs:
           set -euo pipefail
 
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools libfuse2 python3-pip
+          sudo apt-get install -y libarchive-tools libfuse2 python3-pip xz-utils
           python3 -m pip install --user git+https://github.com/rustdesk-org/appimage-builder.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
@@ -343,7 +343,19 @@ jobs:
           deb_file="$(find linux-artifacts -type f -name '*.deb' | head -n 1)"
           test -n "$deb_file"
 
-          cp "$deb_file" rustdesk/appimage/rustdesk.deb
+          normalize_deb_payload_to_xz() {
+            local input_deb="$1"
+            local output_deb="$2"
+            local workdir
+            workdir="$(mktemp -d)"
+            trap 'rm -rf "$workdir"' RETURN
+
+            dpkg-deb -R "$input_deb" "$workdir/pkg"
+            dpkg-deb -Zxz -b "$workdir/pkg" "$output_deb"
+            bsdtar -tf "$output_deb" | grep -qx 'data.tar.xz'
+          }
+
+          normalize_deb_payload_to_xz "$deb_file" rustdesk/appimage/rustdesk.deb
           cd rustdesk/appimage
           appimage-builder --skip-tests --recipe ./AppImageBuilder-x86_64.yml
           test -n "$(find . -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
@@ -390,12 +402,24 @@ jobs:
           set -euo pipefail
 
           sudo apt-get update
-          sudo apt-get install -y git flatpak flatpak-builder
+          sudo apt-get install -y git flatpak flatpak-builder libarchive-tools xz-utils
 
           deb_file="$(find linux-artifacts -type f -name '*.deb' | head -n 1)"
           test -n "$deb_file"
 
-          cp "$deb_file" rustdesk/flatpak/rustdesk.deb
+          normalize_deb_payload_to_xz() {
+            local input_deb="$1"
+            local output_deb="$2"
+            local workdir
+            workdir="$(mktemp -d)"
+            trap 'rm -rf "$workdir"' RETURN
+
+            dpkg-deb -R "$input_deb" "$workdir/pkg"
+            dpkg-deb -Zxz -b "$workdir/pkg" "$output_deb"
+            bsdtar -tf "$output_deb" | grep -qx 'data.tar.xz'
+          }
+
+          normalize_deb_payload_to_xz "$deb_file" rustdesk/flatpak/rustdesk.deb
           cd rustdesk/flatpak
 
           flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
