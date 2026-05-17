@@ -82,17 +82,20 @@ runs:
       run: |
         set -euo pipefail
 
-        python3 scripts/configure_rustdesk.py \
-          --source-dir rustdesk \
-          --host "$CUSTOM_RENDEZVOUS_SERVER" \
-          --relay "$CUSTOM_RELAY_SERVER" \
-          --api "$CUSTOM_API_SERVER" \
-          --key "$CUSTOM_PUBLIC_KEY" \
-          --app-name "$CLIENT_NAME" \
-          --app-id "$CLIENT_IDENTIFIER" \
-          --description "$CLIENT_DESCRIPTION" \
-          --company "$CLIENT_COMPANY" \
-          --asset-dir ${{ inputs.asset_dir }}
+        args=(
+          --source-dir rustdesk
+          --host "$CUSTOM_RENDEZVOUS_SERVER"
+          --key "$CUSTOM_PUBLIC_KEY"
+        )
+        [ -n "$CUSTOM_RELAY_SERVER" ] && args+=(--relay "$CUSTOM_RELAY_SERVER")
+        [ -n "$CUSTOM_API_SERVER" ] && args+=(--api "$CUSTOM_API_SERVER")
+        [ -n "$CLIENT_NAME" ] && args+=(--app-name "$CLIENT_NAME")
+        [ -n "$CLIENT_IDENTIFIER" ] && args+=(--app-id "$CLIENT_IDENTIFIER")
+        [ -n "$CLIENT_DESCRIPTION" ] && args+=(--description "$CLIENT_DESCRIPTION")
+        [ -n "$CLIENT_COMPANY" ] && args+=(--company "$CLIENT_COMPANY")
+        [ -n "${{ inputs.asset_dir }}" ] && args+=(--asset-dir "${{ inputs.asset_dir }}")
+
+        python3 scripts/configure_rustdesk.py "${args[@]}"
 
     - name: Inject self-hosted config and branding on Windows
       if: inputs.target == 'windows'
@@ -107,14 +110,17 @@ runs:
         CLIENT_DESCRIPTION: ${{ inputs.description }}
         CLIENT_COMPANY: ${{ inputs.company }}
       run: |
-        python scripts/configure_rustdesk.py `
-          --source-dir rustdesk `
-          --host "$env:CUSTOM_RENDEZVOUS_SERVER" `
-          --relay "$env:CUSTOM_RELAY_SERVER" `
-          --api "$env:CUSTOM_API_SERVER" `
-          --key "$env:CUSTOM_PUBLIC_KEY" `
-          --app-name "$env:CLIENT_NAME" `
-          --app-id "$env:CLIENT_IDENTIFIER" `
-          --description "$env:CLIENT_DESCRIPTION" `
-          --company "$env:CLIENT_COMPANY" `
-          --asset-dir ${{ inputs.asset_dir }}
+        $args = @(
+          "--source-dir", "rustdesk",
+          "--host", "$env:CUSTOM_RENDEZVOUS_SERVER",
+          "--key", "$env:CUSTOM_PUBLIC_KEY"
+        )
+        if ($env:CUSTOM_RELAY_SERVER -ne "") { $args += @("--relay", "$env:CUSTOM_RELAY_SERVER") }
+        if ($env:CUSTOM_API_SERVER -ne "") { $args += @("--api", "$env:CUSTOM_API_SERVER") }
+        if ($env:CLIENT_NAME -ne "") { $args += @("--app-name", "$env:CLIENT_NAME") }
+        if ($env:CLIENT_IDENTIFIER -ne "") { $args += @("--app-id", "$env:CLIENT_IDENTIFIER") }
+        if ($env:CLIENT_DESCRIPTION -ne "") { $args += @("--description", "$env:CLIENT_DESCRIPTION") }
+        if ($env:CLIENT_COMPANY -ne "") { $args += @("--company", "$env:CLIENT_COMPANY") }
+        if ("${{ inputs.asset_dir }}" -ne "") { $args += @("--asset-dir", "${{ inputs.asset_dir }}") }
+
+        python scripts/configure_rustdesk.py @args
