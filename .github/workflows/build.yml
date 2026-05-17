@@ -80,6 +80,17 @@ jobs:
             pkg-config \
             wget
 
+      - name: Install rustup if missing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+          fi
+
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
       - name: Setup Rust for bridge generation
         shell: bash
         run: |
