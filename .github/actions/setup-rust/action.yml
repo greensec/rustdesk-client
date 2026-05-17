@@ -34,11 +34,12 @@ runs:
       run: |
         set -euo pipefail
 
-        rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
-        rustup default "$RUST_VERSION"
-
         if [ "${{ inputs.target }}" = "windows" ]; then
-          rustup target add x86_64-pc-windows-msvc
+          rustup toolchain install "${RUST_VERSION}-x86_64-pc-windows-msvc" --profile minimal --component rustfmt
+          rustup default "${RUST_VERSION}-x86_64-pc-windows-msvc"
+        else
+          rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
+          rustup default "$RUST_VERSION"
         fi
 
         rustc --version
