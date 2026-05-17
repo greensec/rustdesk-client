@@ -106,6 +106,14 @@ jobs:
           flutter-version: ${{ env.BRIDGE_FLUTTER_VERSION }}
           cache: true
 
+      - name: Mark Flutter directory as safe for git
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          FLUTTER_ROOT="$(dirname "$(dirname "$(command -v flutter)")")"
+          git config --global --add safe.directory "$FLUTTER_ROOT"
+
       - name: Generate Flutter/Rust bridge
         shell: bash
         run: |
