@@ -519,6 +519,8 @@ jobs:
       - name: Build Windows
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+
           cd rustdesk
 
           python .\build.py `
@@ -527,6 +529,53 @@ jobs:
             --flutter `
             --vram `
             --skip-portable-pack
+
+      - name: Package Windows portable executable
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          cd rustdesk
+
+          $releasePath = "flutter\build\windows\x64\runner\Release"
+          if (!(Test-Path $releasePath)) {
+            throw "Windows Flutter release directory not found: $releasePath"
+          }
+
+          $portableInput = "rustdesk"
+          if (Test-Path $portableInput) {
+            Remove-Item -Recurse -Force $portableInput
+          }
+          New-Item -ItemType Directory -Force -Path $portableInput | Out-Null
+          Copy-Item -Path "$releasePath\*" -Destination $portableInput -Recurse -Force
+
+          $portableExe = Join-Path $portableInput "rustdesk.exe"
+          if (!(Test-Path $portableExe)) {
+            throw "rustdesk.exe not found in portable input directory: $portableInput"
+          }
+
+          Push-Location "libs\portable"
+          python -m pip install -r requirements.txt
+          python .\generate.py `
+            -f "..\..\$portableInput\" `
+            -o "." `
+            -e "..\..\$portableExe"
+          Pop-Location
+
+          $packerExe = "target\release\rustdesk-portable-packer.exe"
+          if (!(Test-Path $packerExe)) {
+            $foundPacker = Get-ChildItem -Path . -Recurse -Filter "rustdesk-portable-packer.exe" |
+              Select-Object -First 1
+            if ($null -eq $foundPacker) {
+              throw "Portable packer executable was not generated"
+            }
+            $packerExe = $foundPacker.FullName
+          }
+
+          $versionSafe = "${{ inputs.rustdesk_ref }}" -replace '[\\/:*?"<>| ]', '-'
+          New-Item -ItemType Directory -Force -Path "dist" | Out-Null
+          Copy-Item $packerExe "dist\rustdesk-$versionSafe-windows-x86_64-portable.exe" -Force
+          Get-ChildItem "dist"
 
       - name: Collect artifacts
         uses: ./.github/actions/collect-artifacts
@@ -538,7 +587,7 @@ jobs:
         with:
           name: rustdesk-windows
           path: artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
 
   macos:
     needs: generate_bridge

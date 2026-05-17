@@ -81,31 +81,50 @@ runs:
       if: inputs.target == 'windows'
       shell: pwsh
       run: |
+        $ErrorActionPreference = "Stop"
+
         New-Item -ItemType Directory -Force -Path artifacts | Out-Null
 
-        if (Test-Path "rustdesk\flutter\build\windows\x64\runner\Release") {
-          Compress-Archive `
-            -Path "rustdesk\flutter\build\windows\x64\runner\Release\*" `
-            -DestinationPath "artifacts\rustdesk-windows-flutter-release.zip" `
-            -Force
-        }
-
-        if (Test-Path "rustdesk\rustdesk") {
-          Compress-Archive `
-            -Path "rustdesk\rustdesk\*" `
-            -DestinationPath "artifacts\rustdesk-windows-folder.zip" `
-            -Force
-        }
-
-        Get-ChildItem -Path rustdesk -Recurse -File `
-          -Include *.exe,*.msi,*.zip `
-          | Where-Object {
-              $_.FullName -notlike "*\target\debug\*" -and
-              $_.FullName -notlike "*\target\release\build\*" -and
-              $_.FullName -notlike "*\vcpkg\*"
-            } `
-          | ForEach-Object {
-              Copy-Item $_.FullName -Destination artifacts -Force -ErrorAction SilentlyContinue
+        # Preferred output: RustDesk's portable packer creates a single
+        # self-extracting executable in rustdesk\dist. Publish only that
+        # file when it exists, so the Windows artifact is not a folder zip.
+        if (Test-Path "rustdesk\dist") {
+          Get-ChildItem -Path "rustdesk\dist" -File |
+            Where-Object { $_.Extension -in ".exe", ".msi", ".zip" } |
+            ForEach-Object {
+              Copy-Item $_.FullName -Destination artifacts -Force
             }
+        }
+
+        if ((Get-ChildItem artifacts -File -ErrorAction SilentlyContinue | Measure-Object).Count -eq 0) {
+          if (Test-Path "rustdesk\flutter\build\windows\x64\runner\Release") {
+            Compress-Archive `
+              -Path "rustdesk\flutter\build\windows\x64\runner\Release\*" `
+              -DestinationPath "artifacts\rustdesk-windows-flutter-release.zip" `
+              -Force
+          }
+
+          if (Test-Path "rustdesk\rustdesk") {
+            Compress-Archive `
+              -Path "rustdesk\rustdesk\*" `
+              -DestinationPath "artifacts\rustdesk-windows-folder.zip" `
+              -Force
+          }
+
+          Get-ChildItem -Path rustdesk -Recurse -File `
+            -Include *.exe,*.msi,*.zip `
+            | Where-Object {
+                $_.FullName -notlike "*\target\debug\*" -and
+                $_.FullName -notlike "*\target\release\build\*" -and
+                $_.FullName -notlike "*\vcpkg\*" -and
+                $_.FullName -notlike "*\flutter\build\windows\x64\runner\Release\*.exe"
+              } `
+            | ForEach-Object {
+                Copy-Item $_.FullName -Destination artifacts -Force -ErrorAction SilentlyContinue
+              }
+        }
 
         Get-ChildItem artifacts -ErrorAction SilentlyContinue
+        if ((Get-ChildItem artifacts -File -ErrorAction SilentlyContinue | Measure-Object).Count -eq 0) {
+          throw "No Windows artifacts were collected"
+        }
