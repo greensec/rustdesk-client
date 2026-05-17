@@ -39,7 +39,8 @@ env:
 jobs:
 
   generate_bridge:
-    runs-on: ubuntu-22.04
+    # runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, linux, x64, portainer-vps]
 
     steps:
       - name: Checkout builder repo
@@ -145,7 +146,8 @@ jobs:
 
   linux:
     needs: generate_bridge
-    runs-on: ubuntu-22.04
+    # runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout builder repo
@@ -320,7 +322,8 @@ jobs:
 
   linux_appimage:
     needs: linux
-    runs-on: ubuntu-22.04
+    # runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout builder repo
@@ -387,7 +390,8 @@ jobs:
 
   linux_flatpak:
     needs: linux
-    runs-on: ubuntu-22.04
+    # runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout builder repo
@@ -745,7 +749,8 @@ jobs:
       - linux_flatpak
       - windows
       - macos
-    runs-on: ubuntu-22.04
+    # runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64]
     if: ${{ inputs.publish_release }}
     permissions:
       contents: write
