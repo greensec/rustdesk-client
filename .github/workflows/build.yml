@@ -402,7 +402,7 @@ jobs:
           set -euo pipefail
 
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools libfuse2 fakeroot squashfs-tools python3-pip xz-utils
+          sudo apt-get install -y libarchive-tools libfuse2 fakeroot squashfs-tools zsync python3-pip xz-utils
           python3 -m pip install --user git+https://github.com/rustdesk-org/appimage-builder.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
@@ -473,6 +473,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git flatpak flatpak-builder libarchive-tools xz-utils fuse3
           sudo modprobe fuse || true
+          if [ ! -e /dev/fuse ]; then
+            sudo mknod /dev/fuse c 10 229 || true
+            sudo chmod 666 /dev/fuse || true
+          fi
 
           deb_file="$(find linux-artifacts -type f -name '*.deb' | head -n 1)"
           test -n "$deb_file"
