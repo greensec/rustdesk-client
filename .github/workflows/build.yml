@@ -402,7 +402,7 @@ jobs:
           set -euo pipefail
 
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools libfuse2 fakeroot python3-pip xz-utils
+          sudo apt-get install -y libarchive-tools libfuse2 fakeroot squashfs-tools python3-pip xz-utils
           python3 -m pip install --user git+https://github.com/rustdesk-org/appimage-builder.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
@@ -471,7 +471,8 @@ jobs:
           set -euo pipefail
 
           sudo apt-get update
-          sudo apt-get install -y git flatpak flatpak-builder libarchive-tools xz-utils
+          sudo apt-get install -y git flatpak flatpak-builder libarchive-tools xz-utils fuse3
+          sudo modprobe fuse || true
 
           deb_file="$(find linux-artifacts -type f -name '*.deb' | head -n 1)"
           test -n "$deb_file"
@@ -493,7 +494,7 @@ jobs:
 
           flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           git clone --depth=1 https://github.com/flathub/shared-modules.git shared-modules || true
-          flatpak-builder --user --install-deps-from=flathub -y --force-clean --disable-rofiles --repo=repo ./build ./rustdesk.json
+          flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./rustdesk.json
 
           version_safe="$(echo '${{ inputs.rustdesk_ref }}' | tr '/ ' '--')"
           flatpak build-bundle ./repo "rustdesk-${version_safe}-x86_64.flatpak" com.rustdesk.RustDesk
