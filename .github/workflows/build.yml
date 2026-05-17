@@ -255,6 +255,7 @@ jobs:
             nasm \
             yasm \
             autoconf \
+            libtool \
             python3 \
             python3-pip \
             libssl-dev \
