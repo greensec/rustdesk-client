@@ -254,6 +254,7 @@ jobs:
             libclang-dev \
             nasm \
             yasm \
+            autoconf \
             python3 \
             python3-pip \
             libssl-dev \
