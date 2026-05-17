@@ -21,8 +21,18 @@ on:
         required: true
         type: boolean
         default: false
-      linux_only:
-        description: "Only build Linux packages (skip Windows and macOS)"
+      build_linux:
+        description: "Build Linux packages"
+        required: true
+        type: boolean
+        default: true
+      build_windows:
+        description: "Build Windows packages"
+        required: true
+        type: boolean
+        default: true
+      build_macos:
+        description: "Build macOS packages"
         required: true
         type: boolean
         default: true
@@ -170,6 +180,7 @@ jobs:
 
   linux:
     needs: generate_bridge
+    if: ${{ inputs.build_linux }}
     # runs-on: ubuntu-22.04
     runs-on: [self-hosted, linux, x64]
 
@@ -346,6 +357,7 @@ jobs:
 
   linux_appimage:
     needs: linux
+    if: ${{ inputs.build_linux }}
     # runs-on: ubuntu-22.04
     runs-on: [self-hosted, linux, x64]
 
@@ -414,6 +426,7 @@ jobs:
 
   linux_flatpak:
     needs: linux
+    if: ${{ inputs.build_linux }}
     # runs-on: ubuntu-22.04
     runs-on: [self-hosted, linux, x64]
 
@@ -485,7 +498,7 @@ jobs:
 
   windows:
     needs: generate_bridge
-    if: ${{ !inputs.linux_only }}
+    if: ${{ inputs.build_windows }}
     runs-on: windows-2022
 
     steps:
@@ -638,7 +651,7 @@ jobs:
 
   macos:
     needs: generate_bridge
-    if: ${{ !inputs.linux_only }}
+    if: ${{ inputs.build_macos }}
     runs-on: macos-14
 
     steps:
@@ -777,7 +790,7 @@ jobs:
       - macos
     # runs-on: ubuntu-22.04
     runs-on: [self-hosted, linux, x64]
-    if: ${{ always() && !cancelled() && inputs.publish_release && needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success' && (inputs.linux_only || needs.windows.result == 'success') && (inputs.linux_only || needs.macos.result == 'success') }}
+    if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos || needs.macos.result == 'success') }}
     permissions:
       contents: write
       actions: read
