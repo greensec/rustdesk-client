@@ -592,7 +592,7 @@ jobs:
           vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
 
       - name: Build Windows
-        shell: pwsh
+        shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
 
@@ -606,7 +606,7 @@ jobs:
             --skip-portable-pack
 
       - name: Package Windows portable executable
-        shell: pwsh
+        shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
 

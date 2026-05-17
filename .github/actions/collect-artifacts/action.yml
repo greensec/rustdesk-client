@@ -79,7 +79,7 @@ runs:
 
     - name: Collect Windows artifacts
       if: inputs.target == 'windows'
-      shell: pwsh
+      shell: powershell
       run: |
         $ErrorActionPreference = "Stop"
 

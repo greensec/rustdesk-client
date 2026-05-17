@@ -96,7 +96,7 @@ runs:
 
     - name: Inject self-hosted config and branding on Windows
       if: inputs.target == 'windows'
-      shell: pwsh
+      shell: powershell
       env:
         CUSTOM_RENDEZVOUS_SERVER: ${{ inputs.host }}
         CUSTOM_RELAY_SERVER: ${{ inputs.relay }}

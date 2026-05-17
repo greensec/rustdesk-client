@@ -39,7 +39,7 @@ runs:
 
     - name: Verify injection on Windows
       if: inputs.target == 'windows'
-      shell: pwsh
+      shell: powershell
       env:
         CLIENT_NAME: ${{ inputs.client_name }}
       run: |

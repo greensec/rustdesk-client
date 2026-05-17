@@ -40,7 +40,7 @@ runs:
 
     - name: Setup vcpkg on Windows
       if: inputs.target == 'windows'
-      shell: pwsh
+      shell: powershell
       env:
         VCPKG_COMMIT_ID: ${{ inputs.vcpkg_commit_id }}
       run: |
@@ -106,7 +106,7 @@ runs:
 
     - name: Install vcpkg dependencies on Windows
       if: inputs.target == 'windows'
-      shell: pwsh
+      shell: powershell
       env:
         VCPKG_DEFAULT_HOST_TRIPLET: x64-windows-static
       run: |

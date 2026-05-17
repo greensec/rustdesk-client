@@ -83,7 +83,7 @@ runs:
 
     - name: Replace Windows Flutter engine with RustDesk engine
       if: inputs.target == 'windows'
-      shell: pwsh
+      shell: powershell
       run: |
         flutter doctor -v
         flutter precache --windows
