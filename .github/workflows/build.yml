@@ -21,6 +21,11 @@ on:
         required: true
         type: boolean
         default: false
+      linux_only:
+        description: "Only build Linux packages (skip Windows and macOS)"
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -480,6 +485,7 @@ jobs:
 
   windows:
     needs: generate_bridge
+    if: ${{ !inputs.linux_only }}
     runs-on: windows-2022
 
     steps:
@@ -632,6 +638,7 @@ jobs:
 
   macos:
     needs: generate_bridge
+    if: ${{ !inputs.linux_only }}
     runs-on: macos-14
 
     steps:
@@ -770,7 +777,7 @@ jobs:
       - macos
     # runs-on: ubuntu-22.04
     runs-on: [self-hosted, linux, x64]
-    if: ${{ inputs.publish_release }}
+    if: ${{ always() && !cancelled() && inputs.publish_release && needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success' && (inputs.linux_only || needs.windows.result == 'success') && (inputs.linux_only || needs.macos.result == 'success') }}
     permissions:
       contents: write
       actions: read

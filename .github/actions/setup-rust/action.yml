@@ -15,6 +15,17 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Ensure rustup is installed
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        if ! command -v rustup >/dev/null 2>&1; then
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+        fi
+
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
     - name: Setup Rust on Linux/Windows
       if: inputs.target != 'macos'
       shell: bash
