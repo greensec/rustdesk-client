@@ -284,21 +284,19 @@ jobs:
           rust_version: ${{ env.RUST_VERSION }}
           mac_rust_version: ${{ env.MAC_RUST_VERSION }}
 
-      - name: Mark Flutter directory as safe for git
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if command -v flutter >/dev/null 2>&1; then
-            FLUTTER_ROOT="$(dirname "$(dirname "$(command -v flutter)")")"
-            git config --global --add safe.directory "$FLUTTER_ROOT"
-          fi
-
       - name: Setup Flutter
         uses: ./.github/actions/setup-flutter
         with:
           target: linux
           flutter_version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Mark Flutter directory as safe for git
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          FLUTTER_ROOT="$(dirname "$(dirname "$(command -v flutter)")")"
+          git config --global --add safe.directory "$FLUTTER_ROOT"
 
       - name: Restore generated Flutter/Rust bridge
         uses: actions/download-artifact@v4
