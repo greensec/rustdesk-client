@@ -498,7 +498,7 @@ jobs:
 
           flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           git clone --depth=1 https://github.com/flathub/shared-modules.git shared-modules || true
-          flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./rustdesk.json
+          flatpak-builder --user --install-deps-from=flathub -y --force-clean --disable-rofiles-fuse --repo=repo ./build ./rustdesk.json
 
           version_safe="$(echo '${{ inputs.rustdesk_ref }}' | tr '/ ' '--')"
           flatpak build-bundle ./repo "rustdesk-${version_safe}-x86_64.flatpak" com.rustdesk.RustDesk
