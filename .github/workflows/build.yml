@@ -437,7 +437,9 @@ jobs:
   linux_flatpak:
     needs: linux
     if: ${{ inputs.build_linux }}
-    runs-on: ubuntu-22.04
+    # NOTE: This job requires a privileged Docker container for flatpak/bwrap namespaces.
+    # In Portainer, enable "Privileged mode" for the runner container, or add capability SYS_ADMIN.
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout builder repo
