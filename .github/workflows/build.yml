@@ -668,7 +668,7 @@ jobs:
   macos:
     needs: generate_bridge
     if: ${{ inputs.build_macos }}
-    runs-on: macos-14
+    runs-on: [self-hosted, macOS, X64]
 
     steps:
       - name: Checkout builder repo
