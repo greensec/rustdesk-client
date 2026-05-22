@@ -771,6 +771,7 @@ jobs:
             mkdir -p "$HOME/homebrew/bin"
             cp nasm-2.16.03/nasm "$HOME/homebrew/bin/nasm"
             echo "$HOME/homebrew/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/homebrew/bin:$PATH"
           fi
           nasm --version
 
@@ -906,6 +907,7 @@ jobs:
             mkdir -p "$HOME/homebrew/bin"
             cp nasm-2.16.03/nasm "$HOME/homebrew/bin/nasm"
             echo "$HOME/homebrew/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/homebrew/bin:$PATH"
           fi
           nasm --version
 
