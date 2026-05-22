@@ -770,7 +770,7 @@ jobs:
             unzip -q nasm-2.16.03-macosx.zip
             mkdir -p "$HOME/homebrew/bin"
             cp nasm-2.16.03/nasm "$HOME/homebrew/bin/nasm"
-            export PATH="$HOME/homebrew/bin:$PATH"
+            echo "$HOME/homebrew/bin" >> "$GITHUB_PATH"
           fi
           nasm --version
 
@@ -905,7 +905,7 @@ jobs:
             unzip -q nasm-2.16.03-macosx.zip
             mkdir -p "$HOME/homebrew/bin"
             cp nasm-2.16.03/nasm "$HOME/homebrew/bin/nasm"
-            export PATH="$HOME/homebrew/bin:$PATH"
+            echo "$HOME/homebrew/bin" >> "$GITHUB_PATH"
           fi
           nasm --version
 
@@ -1106,20 +1106,43 @@ jobs:
         run: |
           set -euo pipefail
 
-          cd rustdesk
-
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            echo "=== Building deps for $abi ==="
-            if ! ./flutter/build_android_deps.sh "$abi"; then
-              find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-                echo "$_1:"
-                echo "======"
-                cat "$_1"
-                echo "======"
-                echo ""
-              done
-              exit 1
-            fi
+            case "$abi" in
+              arm64-v8a)   VCPKG_TARGET=arm64-android ;;
+              armeabi-v7a) VCPKG_TARGET=arm-neon-android ;;
+              x86_64)      VCPKG_TARGET=x64-android ;;
+            esac
+
+            echo "=== Building deps for $abi ($VCPKG_TARGET) ==="
+            "$VCPKG_ROOT/vcpkg" install \
+              --triplet "$VCPKG_TARGET" \
+              --x-install-root="$VCPKG_ROOT/installed" \
+              --x-manifest-root="$GITHUB_WORKSPACE/rustdesk" \
+              || {
+                find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+                  echo "$_1:"
+                  echo "======"
+                  cat "$_1"
+                  echo "======"
+                  echo ""
+                done
+                exit 1
+              }
+          done
+
+          # Rename arm-neon-android to arm-android expected by some build scripts
+          if [ -d "$VCPKG_ROOT/installed/arm-neon-android" ]; then
+            mv "$VCPKG_ROOT/installed/arm-neon-android" "$VCPKG_ROOT/installed/arm-android"
+          fi
+
+          echo "=== Installed vcpkg packages ==="
+          find "$VCPKG_ROOT/installed" -maxdepth 2 -type d | sort
+
+          echo "=== Checking for expected headers ==="
+          for triplet in arm64-android arm-android x64-android; do
+            echo "--- $triplet ---"
+            ls -la "$VCPKG_ROOT/installed/$triplet/include/" 2>/dev/null || echo "No include dir"
+            ls -la "$VCPKG_ROOT/installed/$triplet/lib/" 2>/dev/null || echo "No lib dir"
           done
 
       - name: Build RustDesk Android libraries
