@@ -3,7 +3,7 @@ description: Setup Flutter, disable analytics, precache, patch, and replace Wind
 
 inputs:
   target:
-    description: Target platform (linux, windows, macos)
+    description: Target platform (linux, windows, macos, android)
     required: true
   flutter_version:
     description: Flutter version to install
@@ -40,6 +40,8 @@ runs:
           flutter precache --windows
         elif [ "${{ inputs.target }}" = "macos" ]; then
           flutter precache --macos
+        elif [ "${{ inputs.target }}" = "android" ]; then
+          flutter precache --android
         else
           flutter precache --linux
         fi
@@ -56,6 +58,8 @@ runs:
           flutter precache --windows
         elif [ "${{ inputs.target }}" = "macos" ]; then
           flutter precache --macos
+        elif [ "${{ inputs.target }}" = "android" ]; then
+          flutter precache --android
         else
           flutter precache --linux
         fi

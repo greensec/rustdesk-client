@@ -3,7 +3,7 @@ description: Install and configure Rust toolchain
 
 inputs:
   target:
-    description: Target platform (linux, windows, macos)
+    description: Target platform (linux, windows, macos, android)
     required: true
   rust_version:
     description: Rust version for Linux/Windows
@@ -41,6 +41,25 @@ runs:
           rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
           rustup default "$RUST_VERSION"
         fi
+
+        rustc --version
+        cargo --version
+
+    - name: Setup Rust on Android
+      if: inputs.target == 'android'
+      shell: bash
+      env:
+        RUST_VERSION: ${{ inputs.rust_version }}
+      run: |
+        set -euo pipefail
+
+        rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt
+        rustup default "$RUST_VERSION"
+
+        rustup target add aarch64-linux-android
+        rustup target add armv7-linux-androideabi
+        rustup target add x86_64-linux-android
+        rustup target add i686-linux-android
 
         rustc --version
         cargo --version

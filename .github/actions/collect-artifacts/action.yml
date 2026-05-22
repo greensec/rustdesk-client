@@ -3,7 +3,7 @@ description: Collect build artifacts into artifacts/ directory
 
 inputs:
   target:
-    description: Target platform (linux, windows, macos)
+    description: Target platform (linux, windows, macos, android)
     required: true
 
 runs:
@@ -75,6 +75,19 @@ runs:
 
         echo "Collected artifacts:"
         ls -la artifacts
+        test "$(find artifacts -type f | wc -l | tr -d ' ')" -gt 0
+
+    - name: Collect Android artifacts
+      if: inputs.target == 'android'
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        mkdir -p artifacts
+
+        find rustdesk -type f -name "*.apk" -exec cp {} artifacts/ \; || true
+
+        ls -la artifacts || true
         test "$(find artifacts -type f | wc -l | tr -d ' ')" -gt 0
 
     - name: Collect Windows artifacts
