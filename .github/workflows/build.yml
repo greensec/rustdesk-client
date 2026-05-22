@@ -36,8 +36,13 @@ on:
         required: true
         type: boolean
         default: true
-      build_macos:
-        description: "Build macOS packages"
+      build_macos_x64:
+        description: "Build macOS x64 (Intel) package"
+        required: true
+        type: boolean
+        default: true
+      build_macos_arm64:
+        description: "Build macOS ARM64 (Apple Silicon) package"
         required: true
         type: boolean
         default: true
@@ -708,8 +713,8 @@ jobs:
 
   macos_x64:
     needs: generate_bridge
-    if: ${{ inputs.build_macos }}
-    runs-on: ${{ fromJSON(inputs.use_github_runners && '["macos-13"]' || '["self-hosted", "macOS", "X64"]') }}
+    if: ${{ inputs.build_macos_x64 }}
+    runs-on: [self-hosted, macOS, X64]
 
     steps:
       - name: Checkout builder repo
@@ -844,7 +849,7 @@ jobs:
 
   macos_arm64:
     needs: generate_bridge
-    if: ${{ inputs.build_macos && inputs.use_github_runners }}
+    if: ${{ inputs.build_macos_arm64 && inputs.use_github_runners }}
     runs-on: macos-latest
 
     steps:
@@ -1108,6 +1113,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          # vcpkg manifest mode removes packages from other triplets when
+          # installing a new triplet, so install each to a separate root
+          # and merge afterward.
+          rm -rf "$VCPKG_ROOT/installed"
+
           for abi in arm64-v8a armeabi-v7a x86_64; do
             case "$abi" in
               arm64-v8a)   VCPKG_TARGET=arm64-android ;;
@@ -1116,9 +1126,11 @@ jobs:
             esac
 
             echo "=== Building deps for $abi ($VCPKG_TARGET) ==="
+            INSTALL_ROOT="$VCPKG_ROOT/installed-$VCPKG_TARGET"
+            mkdir -p "$INSTALL_ROOT"
             "$VCPKG_ROOT/vcpkg" install \
               --triplet "$VCPKG_TARGET" \
-              --x-install-root="$VCPKG_ROOT/installed" \
+              --x-install-root="$INSTALL_ROOT" \
               --x-manifest-root="$GITHUB_WORKSPACE/rustdesk" \
               || {
                 find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
@@ -1130,6 +1142,14 @@ jobs:
                 done
                 exit 1
               }
+          done
+
+          # Merge per-triplet installs into the standard location
+          mkdir -p "$VCPKG_ROOT/installed"
+          for triplet in arm64-android arm-neon-android x64-android; do
+            if [ -d "$VCPKG_ROOT/installed-$triplet/$triplet" ]; then
+              cp -a "$VCPKG_ROOT/installed-$triplet/$triplet" "$VCPKG_ROOT/installed/"
+            fi
           done
 
           # Rename arm-neon-android to arm-android expected by some build scripts
@@ -1216,7 +1236,7 @@ jobs:
       - macos_arm64
       - android
     runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-latest"]' || '["self-hosted", "linux", "x64"]') }}
-    if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos || needs.macos_x64.result == 'success') && (!(inputs.build_macos && inputs.use_github_runners) || needs.macos_arm64.result == 'success') && (!inputs.build_android || needs.android.result == 'success') }}
+    if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos_x64 || needs.macos_x64.result == 'success') && (!inputs.build_macos_arm64 || needs.macos_arm64.result == 'success') && (!inputs.build_android || needs.android.result == 'success') }}
     permissions:
       contents: write
       actions: read
@@ -1241,7 +1261,8 @@ jobs:
           INPUT_PRERELEASE: ${{ inputs.prerelease }}
           BUILD_LINUX: ${{ inputs.build_linux }}
           BUILD_WINDOWS: ${{ inputs.build_windows }}
-          BUILD_MACOS: ${{ inputs.build_macos }}
+          BUILD_MACOS_X64: ${{ inputs.build_macos_x64 }}
+          BUILD_MACOS_ARM64: ${{ inputs.build_macos_arm64 }}
           BUILD_ANDROID: ${{ inputs.build_android }}
         run: |
           set -euo pipefail
@@ -1280,7 +1301,8 @@ jobs:
           os_parts=()
           [ "$BUILD_LINUX" = "true" ] && os_parts+=("Linux")
           [ "$BUILD_WINDOWS" = "true" ] && os_parts+=("Windows")
-          [ "$BUILD_MACOS" = "true" ] && os_parts+=("macOS")
+          [ "$BUILD_MACOS_X64" = "true" ] && os_parts+=("macOS (x64)")
+          [ "$BUILD_MACOS_ARM64" = "true" ] && os_parts+=("macOS (ARM64)")
           [ "$BUILD_ANDROID" = "true" ] && os_parts+=("Android")
 
           if [ ${#os_parts[@]} -eq 0 ]; then
