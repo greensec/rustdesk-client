@@ -25,7 +25,7 @@ on:
         description: "Use GitHub-hosted runners instead of self-hosted runners"
         required: true
         type: boolean
-        default: false
+        default: true
       build_linux:
         description: "Build Linux packages"
         required: true
