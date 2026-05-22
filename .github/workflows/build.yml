@@ -21,6 +21,11 @@ on:
         required: true
         type: boolean
         default: false
+      use_github_runners:
+        description: "Use GitHub-hosted runners instead of self-hosted runners"
+        required: true
+        type: boolean
+        default: false
       build_linux:
         description: "Build Linux packages"
         required: true
@@ -54,8 +59,7 @@ env:
 jobs:
 
   generate_bridge:
-    # runs-on: [self-hosted, linux, x64]
-    runs-on: [self-hosted, linux, x64, portainer-vps]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-22.04"]' || '["self-hosted", "linux", "x64", "portainer-vps"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -213,8 +217,7 @@ jobs:
   linux:
     needs: generate_bridge
     if: ${{ inputs.build_linux }}
-    # runs-on: ubuntu-22.04
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-22.04"]' || '["self-hosted", "linux", "x64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -400,8 +403,7 @@ jobs:
   linux_appimage:
     needs: linux
     if: ${{ inputs.build_linux }}
-    # runs-on: ubuntu-22.04
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-22.04"]' || '["self-hosted", "linux", "x64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -471,7 +473,7 @@ jobs:
     if: ${{ inputs.build_linux }}
     # NOTE: This job requires a privileged Docker container for flatpak/bwrap namespaces.
     # In Portainer, enable "Privileged mode" for the runner container, or add capability SYS_ADMIN.
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-22.04"]' || '["self-hosted", "linux", "x64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -547,7 +549,7 @@ jobs:
   windows:
     needs: generate_bridge
     if: ${{ inputs.build_windows }}
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["windows-latest"]' || '["self-hosted", "Windows", "X64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -700,7 +702,7 @@ jobs:
   macos:
     needs: generate_bridge
     if: ${{ inputs.build_macos }}
-    runs-on: [self-hosted, macOS, X64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["macos-latest"]' || '["self-hosted", "macOS", "X64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -838,8 +840,7 @@ jobs:
       - linux_flatpak
       - windows
       - macos
-    # runs-on: ubuntu-22.04
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-latest"]' || '["self-hosted", "linux", "x64"]') }}
     if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos || needs.macos.result == 'success') }}
     permissions:
       contents: write
