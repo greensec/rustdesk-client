@@ -2,6 +2,8 @@
 
 This document describes how to set up macOS and Windows environments to build the RustDesk client, including configuration for self-hosted GitHub Actions runners.
 
+> **Note:** Android builds run on GitHub-hosted Ubuntu 22.04 runners and do not require a self-hosted runner. The workflow automatically installs the Android NDK, OpenJDK 17, and all required dependencies.
+
 ---
 
 ## macOS Build Environment
@@ -59,6 +61,7 @@ Also install NASM (the assembler used by some Rust dependencies):
 curl -L -o /tmp/nasm.zip https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/macosx/nasm-2.16.03-macosx.zip
 unzip -q /tmp/nasm.zip -d /tmp
 cp /tmp/nasm-2.16.03/nasm ~/homebrew/bin/nasm
+export PATH="$HOME/homebrew/bin:$PATH"
 ```
 
 ### 4. Install Rust

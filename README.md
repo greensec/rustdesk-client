@@ -15,6 +15,7 @@ This repository automates the build and packaging of a customized [RustDesk](htt
   - **Linux**: DEB, RPM, AppImage, Flatpak
   - **Windows**: Portable executable
   - **macOS**: DMG
+  - **Android**: APK (arm64, armv7, x86_64)
 - **Release**: Automatically publishes a GitHub Release with all artifacts.
 
 ## Repository Layout
@@ -50,12 +51,15 @@ This repository automates the build and packaging of a customized [RustDesk](htt
 | `build_linux` | Build Linux packages | `true` |
 | `build_windows` | Build Windows packages | `true` |
 | `build_macos` | Build macOS packages | `true` |
+| `build_android` | Build Android packages | `true` |
+| `use_github_runners` | Use GitHub-hosted runners instead of self-hosted runners | `true` |
 
 ## Build Environments
 
-- **Linux**: Ubuntu 22.04-based self-hosted runner
-- **Windows**: Windows self-hosted runner with LLVM, Rust, Flutter
+- **Linux**: Ubuntu 22.04-based runner (GitHub-hosted or self-hosted)
+- **Windows**: Windows runner with LLVM, Rust, Flutter (GitHub-hosted or self-hosted)
 - **macOS**: macOS Sonoma (14+) self-hosted runner with Xcode, Homebrew, Rust, Flutter, CocoaPods
+- **Android**: Ubuntu 22.04 GitHub-hosted runner (no self-hosted setup required)
 
 See `BUILD.md` for detailed macOS runner setup instructions.
 

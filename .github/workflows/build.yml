@@ -706,10 +706,10 @@ jobs:
           path: artifacts/
           if-no-files-found: error
 
-  macos:
+  macos_x64:
     needs: generate_bridge
     if: ${{ inputs.build_macos }}
-    runs-on: ${{ fromJSON(inputs.use_github_runners && '["macos-latest"]' || '["self-hosted", "macOS", "X64"]') }}
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["macos-13"]' || '["self-hosted", "macOS", "X64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -770,6 +770,7 @@ jobs:
             unzip -q nasm-2.16.03-macosx.zip
             mkdir -p "$HOME/homebrew/bin"
             cp nasm-2.16.03/nasm "$HOME/homebrew/bin/nasm"
+            export PATH="$HOME/homebrew/bin:$PATH"
           fi
           nasm --version
 
@@ -836,7 +837,142 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rustdesk-macos
+          name: rustdesk-macos-x64
+          path: artifacts/
+          if-no-files-found: error
+
+  macos_arm64:
+    needs: generate_bridge
+    if: ${{ inputs.build_macos && inputs.use_github_runners }}
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ env.MAC_RUST_VERSION }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_COMMIT_ID }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
+      - name: Prepare RustDesk
+        uses: ./.github/actions/prepare-rustdesk
+        with:
+          rustdesk_ref: ${{ inputs.rustdesk_ref }}
+          host: ${{ secrets.RENDEZVOUS_SERVER }}
+          relay: ${{ secrets.RELAY_SERVER }}
+          api: ${{ secrets.API_SERVER }}
+          key: ${{ secrets.RS_PUB_KEY }}
+          app_name: ${{ vars.CLIENT_NAME }}
+          app_id: ${{ vars.CLIENT_IDENTIFIER }}
+          description: ${{ vars.CLIENT_DESCRIPTION }}
+          company: ${{ vars.CLIENT_COMPANY }}
+          asset_dir: branding
+          target: macos
+
+      - name: Verify injection
+        uses: ./.github/actions/verify-injection
+        with:
+          target: macos
+          client_name: ${{ vars.CLIENT_NAME }}
+
+      - name: Install macOS dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          brew update
+          brew install llvm create-dmg opus yasm pkg-config
+
+          if ! command -v nasm &> /dev/null; then
+            curl -L -o nasm-2.16.03-macosx.zip \
+              https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/macosx/nasm-2.16.03-macosx.zip
+            unzip -q nasm-2.16.03-macosx.zip
+            mkdir -p "$HOME/homebrew/bin"
+            cp nasm-2.16.03/nasm "$HOME/homebrew/bin/nasm"
+            export PATH="$HOME/homebrew/bin:$PATH"
+          fi
+          nasm --version
+
+          brew --prefix opus
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          target: macos
+          rust_version: ${{ env.RUST_VERSION }}
+          mac_rust_version: ${{ env.MAC_RUST_VERSION }}
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        with:
+          target: macos
+          flutter_version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Restore generated Flutter/Rust bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: bridge-artifact
+          path: rustdesk/
+
+      - name: Setup vcpkg
+        uses: ./.github/actions/setup-vcpkg
+        with:
+          target: macos
+          vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
+
+      - name: Build macOS
+        shell: bash
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+        run: |
+          set -euo pipefail
+
+          cd rustdesk
+
+          if [ "$(uname -m)" = "arm64" ]; then
+            MIN_MACOS_VERSION="12.3"
+            sed -i -e "s/MACOSX_DEPLOYMENT_TARGET=[0-9]*.[0-9]*/MACOSX_DEPLOYMENT_TARGET=${MIN_MACOS_VERSION}/" build.py
+            sed -i -e "s/platform :osx, '.*'/platform :osx, '${MIN_MACOS_VERSION}'/" flutter/macos/Podfile
+            sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
+            sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
+
+            python3 ./build.py \
+              --flutter \
+              --hwcodec \
+              --unix-file-copy-paste \
+              --screencapturekit
+          else
+            python3 ./build.py \
+              --flutter \
+              --hwcodec \
+              --unix-file-copy-paste
+          fi
+
+      - name: Collect artifacts
+        uses: ./.github/actions/collect-artifacts
+        with:
+          target: macos
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-macos-arm64
           path: artifacts/
           if-no-files-found: error
 
@@ -998,15 +1134,15 @@ jobs:
 
           cargo install cargo-ndk --version "${{ env.CARGO_NDK_VERSION }}" --locked
 
-          ./flutter/ndk_arm64.sh
+          cargo ndk --platform 21 --target aarch64-linux-android build --release --features flutter
           mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a
           cp ./target/aarch64-linux-android/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
 
-          ./flutter/ndk_arm.sh
+          cargo ndk --platform 21 --target armv7-linux-androideabi build --release --features flutter
           mkdir -p ./flutter/android/app/src/main/jniLibs/armeabi-v7a
           cp ./target/armv7-linux-androideabi/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
 
-          ./flutter/ndk_x64.sh
+          cargo ndk --platform 21 --target x86_64-linux-android build --release --features flutter
           mkdir -p ./flutter/android/app/src/main/jniLibs/x86_64
           cp ./target/x86_64-linux-android/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
 
@@ -1051,10 +1187,11 @@ jobs:
       - linux_appimage
       - linux_flatpak
       - windows
-      - macos
+      - macos_x64
+      - macos_arm64
       - android
     runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-latest"]' || '["self-hosted", "linux", "x64"]') }}
-    if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos || needs.macos.result == 'success') && (!inputs.build_android || needs.android.result == 'success') }}
+    if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos || needs.macos_x64.result == 'success') && (!(inputs.build_macos && inputs.use_github_runners) || needs.macos_arm64.result == 'success') && (!inputs.build_android || needs.android.result == 'success') }}
     permissions:
       contents: write
       actions: read
