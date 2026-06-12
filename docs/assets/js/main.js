@@ -32,7 +32,7 @@ const I18N = {
     'noBuild.windows': 'No Windows builds available yet.',
     'noBuild.macos': 'No macOS builds available yet.',
     'noBuild.android': 'No Android builds available yet.',
-    'macos.noteText': 'These are official upstream builds. They do not include your self-hosted server configuration.',
+    'macos.noteText': 'These are official upstream builds. They do not include the server configuration.',
     'macos.noteLink': 'See the manual setup steps.',
     'manual.title': 'Manual setup for official clients',
     'manual.intro': 'Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.',
