@@ -1,0 +1,19 @@
+title: RustDesk Client Downloads
+description: Download customized RustDesk clients with pre-configured self-hosted server settings
+baseurl: ""
+url: ""
+
+# Disable the default minima theme styling so our custom CSS takes full control
+theme: minima
+minima:
+  skin: classic
+
+plugins:
+  - jekyll-feed
+
+# Exclude these from the build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor

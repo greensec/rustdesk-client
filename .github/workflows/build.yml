@@ -1237,6 +1237,10 @@ jobs:
       - android
     runs-on: ${{ fromJSON(inputs.use_github_runners && '["ubuntu-latest"]' || '["self-hosted", "linux", "x64"]') }}
     if: ${{ always() && !cancelled() && inputs.publish_release && (!inputs.build_linux || (needs.linux.result == 'success' && needs.linux_appimage.result == 'success' && needs.linux_flatpak.result == 'success')) && (!inputs.build_windows || needs.windows.result == 'success') && (!inputs.build_macos_x64 || needs.macos_x64.result == 'success') && (!inputs.build_macos_arm64 || needs.macos_arm64.result == 'success') && (!inputs.build_android || needs.android.result == 'success') }}
+    outputs:
+      tag: ${{ steps.stage_release_assets.outputs.tag }}
+      title: ${{ steps.stage_release_assets.outputs.title }}
+      prerelease: ${{ steps.stage_release_assets.outputs.prerelease }}
     permissions:
       contents: write
       actions: read
@@ -1363,4 +1367,38 @@ jobs:
               --notes-file release-notes.md \
               "${prerelease_args[@]}"
           fi
+  update_pages:
+    needs: publish_release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.publish_release }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
+      - name: Generate docs data files
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.publish_release.outputs.tag }}
+          RELEASE_TITLE: ${{ needs.publish_release.outputs.title }}
+          RELEASE_PRERELEASE: ${{ needs.publish_release.outputs.prerelease }}
+          RUSTDESK_REF: ${{ inputs.rustdesk_ref }}
+          RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+          RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
+          API_SERVER: ${{ secrets.API_SERVER }}
+          RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
+          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
+        run: |
+          set -euo pipefail
+          python3 scripts/generate_docs_data.py
+
+      - name: Commit and push updated docs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update release and config data [skip ci]"
+          file_pattern: "docs/_data/*.yml"
+          branch: ${{ github.ref_name }}
