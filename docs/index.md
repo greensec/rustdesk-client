@@ -16,11 +16,11 @@ window.RUSTDESK_CONFIG = {
 <header class="site-header">
   <div class="container">
     <h1>{{ site.data.config.client_name | default: site.title }}</h1>
-    <p>Download custom RustDesk clients for your self-hosted server.</p>
-    <p class="hero-caveat">Linux, Windows, and Android builds are pre-configured. macOS uses official upstream builds and needs manual config import.</p>
-    <div class="hero-actions" aria-label="Primary actions">
-      <a class="btn btn-hero" href="#downloads">View downloads</a>
-      <a class="btn btn-hero btn-secondary" href="#config">Copy server config</a>
+    <p data-i18n="hero.subtitle">Download custom RustDesk clients for your self-hosted server.</p>
+    <p class="hero-caveat" data-i18n="hero.caveat">Linux, Windows, and Android builds are pre-configured. macOS uses official upstream builds and needs manual config import.</p>
+    <div class="hero-actions" aria-label="Primary actions" data-i18n-aria-label="hero.actionsLabel">
+      <a class="btn btn-hero" href="#downloads" data-i18n="hero.viewDownloads">View downloads</a>
+      <a class="btn btn-hero btn-secondary" href="#config" data-i18n="hero.copyConfig">Copy server config</a>
     </div>
   </div>
 </header>
@@ -29,29 +29,29 @@ window.RUSTDESK_CONFIG = {
 
   <!-- Downloads -->
   <section class="section" id="downloads">
-    <h2 class="section-title">Downloads</h2>
+    <h2 class="section-title" data-i18n="downloads.title">Downloads</h2>
 
     <div class="recommended-download" id="recommended-download" hidden>
-      <p class="eyebrow">Recommended for this device</p>
-      <h3 id="recommended-title">Choose a download</h3>
+      <p class="eyebrow" data-i18n="recommended.eyebrow">Recommended for this device</p>
+      <h3 id="recommended-title" data-i18n="recommended.defaultTitle">Choose a download</h3>
       <p id="recommended-description"></p>
-      <a class="btn" id="recommended-link" href="#downloads">View options</a>
+      <a class="btn" id="recommended-link" href="#downloads" data-i18n="recommended.defaultCta">View options</a>
     </div>
 
-    <div class="release-summary" aria-label="Release summary">
+    <div class="release-summary" aria-label="Release summary" data-i18n-aria-label="release.summaryLabel">
       {% if site.data.release.tag != "" %}
       <div>
-        <span>Latest build</span>
+        <span data-i18n="release.latestBuild">Latest build</span>
         <strong>{{ site.data.release.tag }}</strong>
       </div>
       {% endif %}
       <div>
-        <span>Pre-configured builds</span>
-        <strong>Linux · Windows · Android</strong>
+        <span data-i18n="release.preconfiguredLabel">Pre-configured builds</span>
+        <strong data-i18n="release.preconfiguredValue">Linux · Windows · Android</strong>
       </div>
       <div>
-        <span>Manual configuration</span>
-        <strong>macOS official builds</strong>
+        <span data-i18n="release.manualLabel">Manual configuration</span>
+        <strong data-i18n="release.manualValue">macOS official builds</strong>
       </div>
     </div>
 
@@ -63,7 +63,7 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-ubuntu icon"></i>
           Linux
         </h3>
-        <p class="detected-label" hidden>Detected on this device</p>
+        <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
         {% if site.data.release.assets.linux.size > 0 %}
         <ul>
           {% for asset in site.data.release.assets.linux %}
@@ -71,7 +71,7 @@ window.RUSTDESK_CONFIG = {
           {% endfor %}
         </ul>
         {% else %}
-        <p class="no-build">No Linux builds available yet.</p>
+        <p class="no-build" data-i18n="noBuild.linux">No Linux builds available yet.</p>
         {% endif %}
       </div>
 
@@ -81,7 +81,7 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-windows icon"></i>
           Windows
         </h3>
-        <p class="detected-label" hidden>Detected on this device</p>
+        <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
         {% if site.data.release.assets.windows.size > 0 %}
         <ul>
           {% for asset in site.data.release.assets.windows %}
@@ -89,7 +89,7 @@ window.RUSTDESK_CONFIG = {
           {% endfor %}
         </ul>
         {% else %}
-        <p class="no-build">No Windows builds available yet.</p>
+        <p class="no-build" data-i18n="noBuild.windows">No Windows builds available yet.</p>
         {% endif %}
       </div>
 
@@ -99,7 +99,7 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-apple icon"></i>
           macOS
         </h3>
-        <p class="detected-label" hidden>Detected on this device</p>
+        <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
         {% assign macos_x64 = site.data.release.upstream_macos.x64 %}
         {% assign macos_arm64 = site.data.release.upstream_macos.arm64 %}
         {% if macos_x64.url != "" or macos_arm64.url != "" %}
@@ -112,11 +112,11 @@ window.RUSTDESK_CONFIG = {
           {% endif %}
         </ul>
         <div class="note">
-          These are official upstream builds. They do not include your self-hosted server configuration.
-          <a href="#manual-instructions">See the manual setup steps.</a>
+          <span data-i18n="macos.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
+          <a href="#manual-instructions" data-i18n="macos.noteLink">See the manual setup steps.</a>
         </div>
         {% else %}
-        <p class="no-build">No macOS builds available yet.</p>
+        <p class="no-build" data-i18n="noBuild.macos">No macOS builds available yet.</p>
         {% endif %}
       </div>
 
@@ -126,7 +126,7 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-android icon"></i>
           Android
         </h3>
-        <p class="detected-label" hidden>Detected on this device</p>
+        <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
         {% if site.data.release.assets.android.size > 0 %}
         <ul>
           {% for asset in site.data.release.assets.android %}
@@ -134,7 +134,7 @@ window.RUSTDESK_CONFIG = {
           {% endfor %}
         </ul>
         {% else %}
-        <p class="no-build">No Android builds available yet.</p>
+        <p class="no-build" data-i18n="noBuild.android">No Android builds available yet.</p>
         {% endif %}
       </div>
 
@@ -144,32 +144,32 @@ window.RUSTDESK_CONFIG = {
   <!-- Manual Setup Instructions -->
   {% if site.data.release.upstream_macos.x64.url != "" or site.data.release.upstream_macos.arm64.url != "" %}
   <section class="section" id="manual-instructions">
-    <h2 class="section-title">Manual setup for official clients</h2>
+    <h2 class="section-title" data-i18n="manual.title">Manual setup for official clients</h2>
     <div class="config-section">
-      <p>Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.</p>
+      <p data-i18n-html="manual.intro">Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.</p>
 
       <div class="instructions">
-        <h4><i class="ti ti-copy"></i> Quick Import (recommended)</h4>
+        <h4><i class="ti ti-copy"></i> <span data-i18n="manual.quickImportTitle">Quick Import (recommended)</span></h4>
         <ol>
-          <li>Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.</li>
-          <li>Select <strong>Network</strong> and unlock the settings with elevated privileges.</li>
-          <li>Click <strong>Import Server Config</strong> and paste the config string from the <a href="#config">Server Configuration</a> section.</li>
+          <li data-i18n-html="manual.quickStep1">Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.</li>
+          <li data-i18n-html="manual.quickStep2">Select <strong>Network</strong> and unlock the settings with elevated privileges.</li>
+          <li data-i18n-html="manual.quickStep3">Click <strong>Import Server Config</strong> and paste the config string from the <a href="#config">Server Configuration</a> section.</li>
         </ol>
       </div>
 
       <div class="instructions" style="margin-top: 16px;">
-        <h4><i class="ti ti-keyboard"></i> Manual Entry</h4>
+        <h4><i class="ti ti-keyboard"></i> <span data-i18n="manual.manualEntryTitle">Manual Entry</span></h4>
         <ol>
-          <li>Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
-          <li><strong>ID Server</strong>: <code>{{ site.data.config.id_server | default: "—" }}</code></li>
+          <li data-i18n-html="manual.manualStep1">Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
+          <li><strong data-i18n="config.idServer">ID Server</strong>: <code>{{ site.data.config.id_server | default: "—" }}</code></li>
           {% if site.data.config.relay_server != "" %}
-          <li><strong>Relay Server</strong>: <code>{{ site.data.config.relay_server }}</code></li>
+          <li><strong data-i18n="config.relayServer">Relay Server</strong>: <code>{{ site.data.config.relay_server }}</code></li>
           {% endif %}
           {% if site.data.config.api_server != "" %}
-          <li><strong>API Server</strong>: <code>{{ site.data.config.api_server }}</code></li>
+          <li><strong data-i18n="config.apiServer">API Server</strong>: <code>{{ site.data.config.api_server }}</code></li>
           {% endif %}
-          <li><strong>Key</strong>: <code>{{ site.data.config.key | default: "—" }}</code></li>
-          <li>Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
+          <li><strong data-i18n="config.key">Key</strong>: <code>{{ site.data.config.key | default: "—" }}</code></li>
+          <li data-i18n-html="manual.manualStepApply">Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
       </div>
     </div>
@@ -178,32 +178,32 @@ window.RUSTDESK_CONFIG = {
 
   <!-- Connection Config -->
   <section class="section" id="config">
-    <h2 class="section-title">Server Configuration</h2>
+    <h2 class="section-title" data-i18n="config.title">Server Configuration</h2>
     <div class="config-section">
       <div class="config-grid">
-        <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration">
+        <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration" data-i18n-aria-label="config.qrAria">
           <div id="qrcode"></div>
-          <p class="qr-label">Scan this QR code in the RustDesk mobile app</p>
+          <p class="qr-label" data-i18n="config.qrLabel">Scan this QR code in the RustDesk mobile app</p>
         </div>
         <div>
-          <p style="margin-top: 0;">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
-          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" readonly>{{ site.data.config.encoded_string }}</textarea>
+          <p class="config-help" data-i18n-html="config.copyHelp">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
+          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
           <div class="btn-group">
-            <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> Copy Config</button>
+            <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy Config</span></button>
           </div>
 
           <dl class="details-list">
-            <dt>ID Server</dt>
+            <dt data-i18n="config.idServer">ID Server</dt>
             <dd>{{ site.data.config.id_server | default: "—" }}</dd>
             {% if site.data.config.relay_server != "" %}
-            <dt>Relay Server</dt>
+            <dt data-i18n="config.relayServer">Relay Server</dt>
             <dd>{{ site.data.config.relay_server }}</dd>
             {% endif %}
             {% if site.data.config.api_server != "" %}
-            <dt>API Server</dt>
+            <dt data-i18n="config.apiServer">API Server</dt>
             <dd>{{ site.data.config.api_server }}</dd>
             {% endif %}
-            <dt>Public Key</dt>
+            <dt data-i18n="config.publicKey">Public Key</dt>
             <dd>{{ site.data.config.key | default: "—" }}</dd>
           </dl>
         </div>
@@ -221,9 +221,9 @@ window.RUSTDESK_CONFIG = {
 
 <footer class="site-footer">
   <div class="container">
-    <p>Built from <a href="https://github.com/rustdesk/rustdesk" target="_blank" rel="noopener">RustDesk</a> · Custom client builder</p>
+    <p data-i18n-html="footer.builtFrom">Built from <a href="https://github.com/rustdesk/rustdesk" target="_blank" rel="noopener">RustDesk</a> · Custom client builder</p>
     {% if site.data.release.tag != "" %}
-    <p>Latest build: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} (prerelease){% endif %}</p>
+    <p><span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(prerelease)</span>{% endif %}</p>
     {% endif %}
   </div>
 </footer>

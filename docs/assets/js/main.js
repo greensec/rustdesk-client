@@ -1,10 +1,184 @@
+let currentLanguage = 'en';
+
+const I18N = {
+  en: {
+    'page.title': 'RustDesk Client Downloads',
+    'page.description': 'Download custom RustDesk clients for a self-hosted RustDesk server.',
+    'hero.subtitle': 'Download custom RustDesk clients for your self-hosted server.',
+    'hero.caveat': 'Linux, Windows, and Android builds are pre-configured. macOS uses official upstream builds and needs manual config import.',
+    'hero.actionsLabel': 'Primary actions',
+    'hero.viewDownloads': 'View downloads',
+    'hero.copyConfig': 'Copy server config',
+    'downloads.title': 'Downloads',
+    'recommended.eyebrow': 'Recommended for this device',
+    'recommended.defaultTitle': 'Choose a download',
+    'recommended.defaultCta': 'View options',
+    'recommended.defaultDescription': 'Recommended for your detected platform.',
+    'recommended.downloadCta': 'Download',
+    'recommended.macosTitle': 'Choose the right macOS DMG',
+    'recommended.macosDescription': 'Apple Silicon and Intel builds are available. These official upstream builds must be configured manually after installation.',
+    'recommended.macosCta': 'View macOS options',
+    'recommended.iosTitle': 'No iOS build is provided here',
+    'recommended.iosDescription': 'Use the server configuration below with a compatible RustDesk client.',
+    'recommended.iosCta': 'View server config',
+    'release.summaryLabel': 'Release summary',
+    'release.latestBuild': 'Latest build',
+    'release.preconfiguredLabel': 'Pre-configured builds',
+    'release.preconfiguredValue': 'Linux · Windows · Android',
+    'release.manualLabel': 'Manual configuration',
+    'release.manualValue': 'macOS official builds',
+    'platform.detected': 'Detected on this device',
+    'noBuild.linux': 'No Linux builds available yet.',
+    'noBuild.windows': 'No Windows builds available yet.',
+    'noBuild.macos': 'No macOS builds available yet.',
+    'noBuild.android': 'No Android builds available yet.',
+    'macos.noteText': 'These are official upstream builds. They do not include your self-hosted server configuration.',
+    'macos.noteLink': 'See the manual setup steps.',
+    'manual.title': 'Manual setup for official clients',
+    'manual.intro': 'Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.',
+    'manual.quickImportTitle': 'Quick Import (recommended)',
+    'manual.quickStep1': 'Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.',
+    'manual.quickStep2': 'Select <strong>Network</strong> and unlock the settings with elevated privileges.',
+    'manual.quickStep3': 'Click <strong>Import Server Config</strong> and paste the config string from the <a href="#config">Server Configuration</a> section.',
+    'manual.manualEntryTitle': 'Manual Entry',
+    'manual.manualStep1': 'Open RustDesk → <strong>Network</strong> settings (unlocked).',
+    'manual.manualStepApply': 'Click <strong>Apply</strong> or <strong>OK</strong> to save.',
+    'config.title': 'Server Configuration',
+    'config.qrAria': 'QR code for the RustDesk server configuration',
+    'config.qrLabel': 'Scan this QR code in the RustDesk mobile app',
+    'config.copyHelp': 'Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:',
+    'config.textareaAria': 'Encoded RustDesk server configuration',
+    'config.copyButton': 'Copy Config',
+    'config.idServer': 'ID Server',
+    'config.relayServer': 'Relay Server',
+    'config.apiServer': 'API Server',
+    'config.key': 'Key',
+    'config.publicKey': 'Public Key',
+    'config.noConfig': 'No config available.',
+    'toast.noConfig': 'No config available to copy.',
+    'toast.copied': 'Copied to clipboard!',
+    'toast.copyFailed': 'Copy failed. Select the text and copy it manually.',
+    'footer.builtFrom': 'Built from <a href="https://github.com/rustdesk/rustdesk" target="_blank" rel="noopener">RustDesk</a> · Custom client builder',
+    'footer.latestBuild': 'Latest build',
+    'footer.prerelease': '(prerelease)',
+    'asset.windows.title': 'Windows portable app',
+    'asset.windows.description': 'Portable 64-bit build for Windows. No installer step required.',
+    'asset.appimage.title': 'Linux AppImage',
+    'asset.appimage.description': 'Recommended for many x86_64 Linux desktops. Download, make executable, and run.',
+    'asset.deb.title': 'Ubuntu / Debian package',
+    'asset.deb.description': 'Use this on Debian, Ubuntu, Linux Mint, and compatible distributions.',
+    'asset.suse.title': 'openSUSE RPM package',
+    'asset.suse.description': 'Use this RPM package on openSUSE-based systems.',
+    'asset.rpm.title': 'Fedora / RHEL RPM package',
+    'asset.rpm.description': 'Use this on Fedora, Red Hat Enterprise Linux, Rocky, AlmaLinux, and compatible distributions.',
+    'asset.flatpak.title': 'Linux Flatpak bundle',
+    'asset.flatpak.description': 'Use this if your desktop workflow prefers Flatpak packages.',
+    'asset.androidArm64.title': 'Android APK for most phones',
+    'asset.androidArm64.description': 'Recommended for most modern Android phones and tablets.',
+    'asset.androidArm32.title': 'Android APK for older 32-bit devices',
+    'asset.androidArm32.description': 'Use this only for older Android devices that do not support 64-bit apps.',
+    'asset.androidX64.title': 'Android APK for emulator / x86_64',
+    'asset.androidX64.description': 'Use this for Android emulators or x86_64 Android devices.',
+    'asset.macosArm.title': 'macOS DMG for Apple Silicon',
+    'asset.macosArm.description': 'Use this for Macs with M1, M2, M3, M4, or newer Apple Silicon chips.',
+    'asset.macosIntel.title': 'macOS DMG for Intel Macs',
+    'asset.macosIntel.description': 'Use this for older Intel-based Macs.'
+  },
+  de: {
+    'page.title': 'RustDesk-Client Downloads',
+    'page.description': 'Lade angepasste RustDesk-Clients für einen selbst gehosteten RustDesk-Server herunter.',
+    'hero.subtitle': 'Laden Sie angepasste RustDesk-Clients für Ihren selbst gehosteten Server herunter.',
+    'hero.caveat': 'Linux-, Windows- und Android-Builds sind vorkonfiguriert. macOS nutzt offizielle Upstream-Builds und benötigt einen manuellen Konfigurationsimport.',
+    'hero.actionsLabel': 'Hauptaktionen',
+    'hero.viewDownloads': 'Downloads anzeigen',
+    'hero.copyConfig': 'Serverkonfiguration kopieren',
+    'downloads.title': 'Downloads',
+    'recommended.eyebrow': 'Empfohlen für dieses Gerät',
+    'recommended.defaultTitle': 'Download auswählen',
+    'recommended.defaultCta': 'Optionen anzeigen',
+    'recommended.defaultDescription': 'Empfohlen für die erkannte Plattform.',
+    'recommended.downloadCta': 'Herunterladen',
+    'recommended.macosTitle': 'Passende macOS-DMG auswählen',
+    'recommended.macosDescription': 'Es gibt Builds für Apple Silicon und Intel. Diese offiziellen Upstream-Builds müssen nach der Installation manuell konfiguriert werden.',
+    'recommended.macosCta': 'macOS-Optionen anzeigen',
+    'recommended.iosTitle': 'Hier wird kein iOS-Build angeboten',
+    'recommended.iosDescription': 'Nutzen Sie die Serverkonfiguration unten mit einem kompatiblen RustDesk-Client.',
+    'recommended.iosCta': 'Serverkonfiguration anzeigen',
+    'release.summaryLabel': 'Release-Zusammenfassung',
+    'release.latestBuild': 'Aktueller Build',
+    'release.preconfiguredLabel': 'Vorkonfigurierte Builds',
+    'release.preconfiguredValue': 'Linux · Windows · Android',
+    'release.manualLabel': 'Manuelle Konfiguration',
+    'release.manualValue': 'offizielle macOS-Builds',
+    'platform.detected': 'Auf diesem Gerät erkannt',
+    'noBuild.linux': 'Noch keine Linux-Builds verfügbar.',
+    'noBuild.windows': 'Noch keine Windows-Builds verfügbar.',
+    'noBuild.macos': 'Noch keine macOS-Builds verfügbar.',
+    'noBuild.android': 'Noch keine Android-Builds verfügbar.',
+    'macos.noteText': 'Dies sind offizielle Upstream-Builds. Sie enthalten nicht die Konfiguration Ihres selbst gehosteten Servers.',
+    'macos.noteLink': 'Manuelle Einrichtung ansehen.',
+    'manual.title': 'Manuelle Einrichtung für offizielle Clients',
+    'manual.intro': 'Offizielle Clients (z. B. macOS) sind nicht vorkonfiguriert. Nutzen Sie nach Download und Installation die Option <strong>Import Server Config</strong> und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt unten ein.',
+    'manual.quickImportTitle': 'Schnellimport (empfohlen)',
+    'manual.quickStep1': 'Öffnen Sie RustDesk und klicken Sie auf die <strong>Menüschaltfläche</strong> (⋯) neben Ihrer ID.',
+    'manual.quickStep2': 'Wählen Sie <strong>Network</strong> und entsperren Sie die Einstellungen mit erhöhten Rechten.',
+    'manual.quickStep3': 'Klicken Sie auf <strong>Import Server Config</strong> und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Serverkonfiguration</a> ein.',
+    'manual.manualEntryTitle': 'Manuelle Eingabe',
+    'manual.manualStep1': 'Öffnen Sie in RustDesk die <strong>Network</strong>-Einstellungen (entsperrt).',
+    'manual.manualStepApply': 'Klicken Sie zum Speichern auf <strong>Apply</strong> oder <strong>OK</strong>.',
+    'config.title': 'Serverkonfiguration',
+    'config.qrAria': 'QR-Code für die RustDesk-Serverkonfiguration',
+    'config.qrLabel': 'Scanne diesen QR-Code in der mobilen RustDesk-App',
+    'config.copyHelp': 'Kopieren Sie diese Konfigurationszeichenfolge und fügen Sie sie in RustDesk unter <strong>Settings → Network → Import Server Config</strong> ein:',
+    'config.textareaAria': 'Kodierte RustDesk-Serverkonfiguration',
+    'config.copyButton': 'Konfiguration kopieren',
+    'config.idServer': 'ID-Server',
+    'config.relayServer': 'Relay-Server',
+    'config.apiServer': 'API-Server',
+    'config.key': 'Schlüssel',
+    'config.publicKey': 'Öffentlicher Schlüssel',
+    'config.noConfig': 'Keine Konfiguration verfügbar.',
+    'toast.noConfig': 'Keine Konfiguration zum Kopieren verfügbar.',
+    'toast.copied': 'In die Zwischenablage kopiert.',
+    'toast.copyFailed': 'Kopieren fehlgeschlagen. Markiere den Text und kopiere ihn manuell.',
+    'footer.builtFrom': 'Erstellt aus <a href="https://github.com/rustdesk/rustdesk" target="_blank" rel="noopener">RustDesk</a> · Custom Client Builder',
+    'footer.latestBuild': 'Aktueller Build',
+    'footer.prerelease': '(Vorabversion)',
+    'asset.windows.title': 'Portable Windows-App',
+    'asset.windows.description': 'Portable 64-Bit-Version für Windows. Keine Installation erforderlich.',
+    'asset.appimage.title': 'Linux AppImage',
+    'asset.appimage.description': 'Empfohlen für viele x86_64-Linux-Desktops. Herunterladen, ausführbar machen und starten.',
+    'asset.deb.title': 'Ubuntu- / Debian-Paket',
+    'asset.deb.description': 'Für Debian, Ubuntu, Linux Mint und kompatible Distributionen.',
+    'asset.suse.title': 'openSUSE-RPM-Paket',
+    'asset.suse.description': 'RPM-Paket für openSUSE-basierte Systeme.',
+    'asset.rpm.title': 'Fedora- / RHEL-RPM-Paket',
+    'asset.rpm.description': 'Für Fedora, Red Hat Enterprise Linux, Rocky, AlmaLinux und kompatible Distributionen.',
+    'asset.flatpak.title': 'Linux-Flatpak-Bundle',
+    'asset.flatpak.description': 'Für Desktop-Workflows, die Flatpak bevorzugen.',
+    'asset.androidArm64.title': 'Android-APK für die meisten Smartphones',
+    'asset.androidArm64.description': 'Empfohlen für die meisten modernen Android-Smartphones und Tablets.',
+    'asset.androidArm32.title': 'Android-APK für ältere 32-Bit-Geräte',
+    'asset.androidArm32.description': 'Nur für ältere Android-Geräte, die keine 64-Bit-Apps unterstützen.',
+    'asset.androidX64.title': 'Android-APK für Emulator / x86_64',
+    'asset.androidX64.description': 'Für Android-Emulatoren oder x86_64-Android-Geräte.',
+    'asset.macosArm.title': 'macOS-DMG für Apple Silicon',
+    'asset.macosArm.description': 'Für Macs mit M1, M2, M3, M4 oder neueren Apple-Silicon-Chips.',
+    'asset.macosIntel.title': 'macOS-DMG für Intel-Macs',
+    'asset.macosIntel.description': 'Für ältere Intel-basierte Macs.'
+  }
+};
+
 document.addEventListener('DOMContentLoaded', function () {
+  currentLanguage = getPreferredLanguage();
+  applyLanguage(currentLanguage);
+
   const encoded = window.RUSTDESK_CONFIG?.encoded_string || '';
   const qrContainer = document.getElementById('qrcode');
 
   if (encoded && qrContainer && typeof QRCode !== 'undefined') {
     qrContainer.innerHTML = '';
-    qrContainer.setAttribute('aria-label', 'QR code for the RustDesk server configuration');
+    qrContainer.setAttribute('aria-label', t('config.qrAria', 'QR code for the RustDesk server configuration'));
     new QRCode(qrContainer, {
       text: encoded,
       width: 200,
@@ -14,7 +188,11 @@ document.addEventListener('DOMContentLoaded', function () {
       correctLevel: QRCode.CorrectLevel.M
     });
   } else if (qrContainer) {
-    qrContainer.innerHTML = '<p style="color:#64748b">No config available.</p>';
+    const empty = document.createElement('p');
+    empty.className = 'qr-empty';
+    empty.textContent = t('config.noConfig', 'No config available.');
+    qrContainer.innerHTML = '';
+    qrContainer.appendChild(empty);
   }
 
   enhanceDownloadLinks();
@@ -27,14 +205,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!target) return;
       const text = target.value || target.textContent || '';
       if (!text.trim()) {
-        showToast('No config available to copy.');
+        showToast(t('toast.noConfig', 'No config available to copy.'));
         return;
       }
 
       copyText(text).then(function () {
-        showToast('Copied to clipboard!');
+        showToast(t('toast.copied', 'Copied to clipboard!'));
       }).catch(function () {
-        showToast('Copy failed. Select the text and copy it manually.');
+        showToast(t('toast.copyFailed', 'Copy failed. Select the text and copy it manually.'));
       });
     });
   });
@@ -51,6 +229,51 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   updateRecommendedDownload(platform);
 });
+
+function getPreferredLanguage() {
+  const queryLanguage = new URLSearchParams(window.location.search).get('lang');
+  if (queryLanguage && I18N[queryLanguage.toLowerCase()]) {
+    return queryLanguage.toLowerCase();
+  }
+
+  const languages = navigator.languages && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language || navigator.userLanguage || 'en'];
+
+  return languages.some(function (language) {
+    return /^de\b/i.test(language);
+  }) ? 'de' : 'en';
+}
+
+function applyLanguage(language) {
+  document.documentElement.lang = language;
+  document.title = t('page.title', document.title);
+
+  const description = document.querySelector('meta[name="description"]');
+  if (description) description.setAttribute('content', t('page.description', description.getAttribute('content') || ''));
+
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', t('page.title', ogTitle.getAttribute('content') || ''));
+
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  if (ogDescription) ogDescription.setAttribute('content', t('page.description', ogDescription.getAttribute('content') || ''));
+
+  document.querySelectorAll('[data-i18n]').forEach(function (element) {
+    element.textContent = t(element.getAttribute('data-i18n'), element.textContent);
+  });
+
+  document.querySelectorAll('[data-i18n-html]').forEach(function (element) {
+    element.innerHTML = t(element.getAttribute('data-i18n-html'), element.innerHTML);
+  });
+
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(function (element) {
+    element.setAttribute('aria-label', t(element.getAttribute('data-i18n-aria-label'), element.getAttribute('aria-label') || ''));
+  });
+}
+
+function t(key, fallback) {
+  return (I18N[currentLanguage] && I18N[currentLanguage][key]) || I18N.en[key] || fallback || '';
+}
 
 function detectPlatform() {
   const ua = navigator.userAgent;
@@ -90,85 +313,59 @@ function getAssetLabel(assetName) {
   const name = assetName.toLowerCase();
 
   if (name.includes('windows')) {
-    return {
-      title: 'Windows portable app',
-      description: 'Portable 64-bit build for Windows. No installer step required.'
-    };
+    return translateAssetLabel('asset.windows');
   }
 
   if (name.endsWith('.appimage')) {
-    return {
-      title: 'Linux AppImage',
-      description: 'Recommended for many x86_64 Linux desktops. Download, make executable, and run.'
-    };
+    return translateAssetLabel('asset.appimage');
   }
 
   if (name.endsWith('.deb')) {
-    return {
-      title: 'Ubuntu / Debian package',
-      description: 'Use this on Debian, Ubuntu, Linux Mint, and compatible distributions.'
-    };
+    return translateAssetLabel('asset.deb');
   }
 
   if (name.includes('suse') && name.endsWith('.rpm')) {
-    return {
-      title: 'openSUSE RPM package',
-      description: 'Use this RPM package on openSUSE-based systems.'
-    };
+    return translateAssetLabel('asset.suse');
   }
 
   if (name.endsWith('.rpm')) {
-    return {
-      title: 'Fedora / RHEL RPM package',
-      description: 'Use this on Fedora, Red Hat Enterprise Linux, Rocky, AlmaLinux, and compatible distributions.'
-    };
+    return translateAssetLabel('asset.rpm');
   }
 
   if (name.endsWith('.flatpak')) {
-    return {
-      title: 'Linux Flatpak bundle',
-      description: 'Use this if your desktop workflow prefers Flatpak packages.'
-    };
+    return translateAssetLabel('asset.flatpak');
   }
 
   if (name.includes('arm64-v8a') && name.endsWith('.apk')) {
-    return {
-      title: 'Android APK for most phones',
-      description: 'Recommended for most modern Android phones and tablets.'
-    };
+    return translateAssetLabel('asset.androidArm64');
   }
 
   if (name.includes('armeabi-v7a') && name.endsWith('.apk')) {
-    return {
-      title: 'Android APK for older 32-bit devices',
-      description: 'Use this only for older Android devices that do not support 64-bit apps.'
-    };
+    return translateAssetLabel('asset.androidArm32');
   }
 
   if (name.includes('x86_64') && name.endsWith('.apk')) {
-    return {
-      title: 'Android APK for emulator / x86_64',
-      description: 'Use this for Android emulators or x86_64 Android devices.'
-    };
+    return translateAssetLabel('asset.androidX64');
   }
 
   if ((name.includes('aarch64') || name.includes('arm64')) && name.endsWith('.dmg')) {
-    return {
-      title: 'macOS DMG for Apple Silicon',
-      description: 'Use this for Macs with M1, M2, M3, M4, or newer Apple Silicon chips.'
-    };
+    return translateAssetLabel('asset.macosArm');
   }
 
   if (name.includes('x86_64') && name.endsWith('.dmg')) {
-    return {
-      title: 'macOS DMG for Intel Macs',
-      description: 'Use this for older Intel-based Macs.'
-    };
+    return translateAssetLabel('asset.macosIntel');
   }
 
   return {
     title: assetName,
     description: ''
+  };
+}
+
+function translateAssetLabel(prefix) {
+  return {
+    title: t(prefix + '.title', ''),
+    description: t(prefix + '.description', '')
   };
 }
 
@@ -186,10 +383,10 @@ function updateRecommendedDownload(platform) {
 
   if (platform === 'ios') {
     panel.hidden = false;
-    title.textContent = 'No iOS build is provided here';
-    description.textContent = 'Use the server configuration below with a compatible RustDesk client.';
+    title.textContent = t('recommended.iosTitle', 'No iOS build is provided here');
+    description.textContent = t('recommended.iosDescription', 'Use the server configuration below with a compatible RustDesk client.');
     link.href = '#config';
-    link.textContent = 'View server config';
+    link.textContent = t('recommended.iosCta', 'View server config');
     return;
   }
 
@@ -197,10 +394,10 @@ function updateRecommendedDownload(platform) {
 
   if (platform === 'macos') {
     panel.hidden = false;
-    title.textContent = 'Choose the right macOS DMG';
-    description.textContent = 'Apple Silicon and Intel builds are available. These official upstream builds must be configured manually after installation.';
+    title.textContent = t('recommended.macosTitle', 'Choose the right macOS DMG');
+    description.textContent = t('recommended.macosDescription', 'Apple Silicon and Intel builds are available. These official upstream builds must be configured manually after installation.');
     link.href = '#downloads';
-    link.textContent = 'View macOS options';
+    link.textContent = t('recommended.macosCta', 'View macOS options');
     return;
   }
 
@@ -235,9 +432,9 @@ function updateRecommendedDownload(platform) {
 
   panel.hidden = false;
   title.textContent = label.title;
-  description.textContent = label.description || 'Recommended for your detected platform.';
+  description.textContent = label.description || t('recommended.defaultDescription', 'Recommended for your detected platform.');
   link.href = recommended.href;
-  link.textContent = 'Download';
+  link.textContent = t('recommended.downloadCta', 'Download');
   link.setAttribute('download', '');
 }
 
