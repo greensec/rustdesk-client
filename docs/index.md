@@ -94,7 +94,7 @@ window.RUSTDESK_CONFIG = {
         </ul>
         <div class="note">
           <span data-i18n="macos.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
-          <a href="#manual-instructions" data-i18n="macos.noteLink">See the manual setup steps.</a>
+          <a href="#config" data-i18n="macos.noteLink">See the manual setup steps.</a>
         </div>
         {% else %}
         <p class="no-build" data-i18n="noBuild.macos">No macOS builds available yet.</p>
@@ -122,19 +122,30 @@ window.RUSTDESK_CONFIG = {
     </div>
   </section>
 
-  <!-- Manual Setup Instructions -->
-  {% if site.data.release.upstream_macos.x64.url != "" or site.data.release.upstream_macos.arm64.url != "" %}
-  <section class="section" id="manual-instructions">
-    <h2 class="section-title" data-i18n="manual.title">Manual setup for official clients</h2>
+  <!-- Server Configuration -->
+  <section class="section" id="config">
+    <h2 class="section-title" data-i18n="config.title">Server Configuration</h2>
     <div class="config-section">
-      <p data-i18n-html="manual.intro">Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.</p>
+      <div class="config-grid">
+        <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration" data-i18n-aria-label="config.qrAria">
+          <div id="qrcode"></div>
+          <p class="qr-label" data-i18n="config.qrLabel">Scan this QR code in the RustDesk mobile app</p>
+        </div>
+        <div>
+          <p class="config-help" data-i18n-html="config.copyHelp">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
+          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
+          <div class="btn-group">
+            <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy Config</span></button>
+          </div>
+        </div>
+      </div>
 
-      <div class="instructions">
+      <div class="instructions" style="margin-top: 24px;">
         <h4><i class="ti ti-copy"></i> <span data-i18n="manual.quickImportTitle">Quick Import (recommended)</span></h4>
         <ol>
           <li data-i18n-html="manual.quickStep1">Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.</li>
           <li data-i18n-html="manual.quickStep2">Select <strong>Network</strong> and unlock the settings with elevated privileges.</li>
-          <li data-i18n-html="manual.quickStep3">Click <strong>Import Server Config</strong> and paste the config string from the <a href="#config">Server Configuration</a> section.</li>
+          <li data-i18n-html="manual.quickStep3">Click <strong>Import Server Config</strong> and paste the config string above.</li>
         </ol>
       </div>
 
@@ -152,42 +163,6 @@ window.RUSTDESK_CONFIG = {
           <li><strong data-i18n="config.key">Key</strong>: <code>{{ site.data.config.key | default: "—" }}</code></li>
           <li data-i18n-html="manual.manualStepApply">Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
-      </div>
-    </div>
-  </section>
-  {% endif %}
-
-  <!-- Connection Config -->
-  <section class="section" id="config">
-    <h2 class="section-title" data-i18n="config.title">Server Configuration</h2>
-    <div class="config-section">
-      <div class="config-grid">
-        <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration" data-i18n-aria-label="config.qrAria">
-          <div id="qrcode"></div>
-          <p class="qr-label" data-i18n="config.qrLabel">Scan this QR code in the RustDesk mobile app</p>
-        </div>
-        <div>
-          <p class="config-help" data-i18n-html="config.copyHelp">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
-          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
-          <div class="btn-group">
-            <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy Config</span></button>
-          </div>
-
-          <dl class="details-list">
-            <dt data-i18n="config.idServer">ID Server</dt>
-            <dd>{{ site.data.config.id_server | default: "—" }}</dd>
-            {% if site.data.config.relay_server != "" %}
-            <dt data-i18n="config.relayServer">Relay Server</dt>
-            <dd>{{ site.data.config.relay_server }}</dd>
-            {% endif %}
-            {% if site.data.config.api_server != "" %}
-            <dt data-i18n="config.apiServer">API Server</dt>
-            <dd>{{ site.data.config.api_server }}</dd>
-            {% endif %}
-            <dt data-i18n="config.publicKey">Public Key</dt>
-            <dd>{{ site.data.config.key | default: "—" }}</dd>
-          </dl>
-        </div>
       </div>
     </div>
   </section>
