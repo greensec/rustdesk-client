@@ -31,9 +31,9 @@ window.RUSTDESK_CONFIG = {
 
     <div class="recommended-download" id="recommended-download" hidden>
       <p class="eyebrow" data-i18n="recommended.eyebrow">Recommended for this device</p>
-      <h3 id="recommended-title" data-i18n="recommended.defaultTitle">Choose a download</h3>
+      <h3 id="recommended-title">Choose a download</h3>
       <p id="recommended-description"></p>
-      <a class="btn" id="recommended-link" href="#downloads" data-i18n="recommended.defaultCta">View options</a>
+      <a class="btn" id="recommended-link" href="#downloads">View options</a>
     </div>
 
     <div class="download-grid">

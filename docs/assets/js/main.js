@@ -265,6 +265,7 @@ function switchLanguage(language) {
 
   currentLanguage = language;
   applyLanguage(language);
+  updateRecommendedDownload(detectPlatform());
 
   // Update URL without reload
   const url = new URL(window.location);
