@@ -16,7 +16,8 @@ window.RUSTDESK_CONFIG = {
 <header class="site-header">
   <div class="container">
     <h1>{{ site.data.config.client_name | default: site.title }}</h1>
-    <p>Download pre-configured clients for your self-hosted RustDesk server</p>
+    <p>Download custom RustDesk clients for your self-hosted server.</p>
+    <p class="hero-caveat">Linux, Windows, and Android builds are pre-configured. macOS uses official upstream builds and needs manual config import.</p>
     <div class="hero-actions" aria-label="Primary actions">
       <a class="btn btn-hero" href="#downloads">View downloads</a>
       <a class="btn btn-hero btn-secondary" href="#config">Copy server config</a>
@@ -37,6 +38,23 @@ window.RUSTDESK_CONFIG = {
       <a class="btn" id="recommended-link" href="#downloads">View options</a>
     </div>
 
+    <div class="release-summary" aria-label="Release summary">
+      {% if site.data.release.tag != "" %}
+      <div>
+        <span>Latest build</span>
+        <strong>{{ site.data.release.tag }}</strong>
+      </div>
+      {% endif %}
+      <div>
+        <span>Pre-configured builds</span>
+        <strong>Linux · Windows · Android</strong>
+      </div>
+      <div>
+        <span>Manual configuration</span>
+        <strong>macOS official builds</strong>
+      </div>
+    </div>
+
     <div class="download-grid">
 
       <!-- Linux -->
@@ -53,7 +71,7 @@ window.RUSTDESK_CONFIG = {
           {% endfor %}
         </ul>
         {% else %}
-        <p style="color: var(--text-muted); font-size: 0.875rem;">No Linux builds available yet.</p>
+        <p class="no-build">No Linux builds available yet.</p>
         {% endif %}
       </div>
 
@@ -71,7 +89,7 @@ window.RUSTDESK_CONFIG = {
           {% endfor %}
         </ul>
         {% else %}
-        <p style="color: var(--text-muted); font-size: 0.875rem;">No Windows builds available yet.</p>
+        <p class="no-build">No Windows builds available yet.</p>
         {% endif %}
       </div>
 
@@ -95,10 +113,10 @@ window.RUSTDESK_CONFIG = {
         </ul>
         <div class="note">
           These are official upstream builds. They do not include your self-hosted server configuration.
-          <a href="#config">Copy the server config after installing.</a>
+          <a href="#manual-instructions">See the manual setup steps.</a>
         </div>
         {% else %}
-        <p style="color: var(--text-muted); font-size: 0.875rem;">No macOS builds available yet.</p>
+        <p class="no-build">No macOS builds available yet.</p>
         {% endif %}
       </div>
 
@@ -116,7 +134,7 @@ window.RUSTDESK_CONFIG = {
           {% endfor %}
         </ul>
         {% else %}
-        <p style="color: var(--text-muted); font-size: 0.875rem;">No Android builds available yet.</p>
+        <p class="no-build">No Android builds available yet.</p>
         {% endif %}
       </div>
 
@@ -126,7 +144,7 @@ window.RUSTDESK_CONFIG = {
   <!-- Manual Setup Instructions -->
   {% if site.data.release.upstream_macos.x64.url != "" or site.data.release.upstream_macos.arm64.url != "" %}
   <section class="section" id="manual-instructions">
-    <h2 class="section-title">Manual Setup Instructions</h2>
+    <h2 class="section-title">Manual setup for official clients</h2>
     <div class="config-section">
       <p>Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.</p>
 
@@ -163,18 +181,15 @@ window.RUSTDESK_CONFIG = {
     <h2 class="section-title">Server Configuration</h2>
     <div class="config-section">
       <div class="config-grid">
-        <div class="qr-wrapper">
+        <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration">
           <div id="qrcode"></div>
-          <p class="qr-label">Scan with RustDesk mobile app</p>
+          <p class="qr-label">Scan this QR code in the RustDesk mobile app</p>
         </div>
         <div>
           <p style="margin-top: 0;">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
-          <textarea class="config-string" id="config-string" readonly>{{ site.data.config.encoded_string }}</textarea>
+          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" readonly>{{ site.data.config.encoded_string }}</textarea>
           <div class="btn-group">
             <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> Copy Config</button>
-            {% if site.data.config.encoded_string != "" %}
-            <button class="btn" data-copy="#config-string"><i class="ti ti-device-mobile"></i> Copy for Mobile</button>
-            {% endif %}
           </div>
 
           <dl class="details-list">
@@ -196,13 +211,19 @@ window.RUSTDESK_CONFIG = {
     </div>
   </section>
 
+  <noscript>
+    <div class="page-note">
+      Download links still work, but the recommended download panel, QR code, and copy buttons require JavaScript.
+    </div>
+  </noscript>
+
 </main>
 
 <footer class="site-footer">
   <div class="container">
     <p>Built from <a href="https://github.com/rustdesk/rustdesk" target="_blank" rel="noopener">RustDesk</a> · Custom client builder</p>
     {% if site.data.release.tag != "" %}
-    <p>Latest build: <code>{{ site.data.release.tag }}</code>{% if site.data.release.prerelease %} (prerelease){% endif %}</p>
+    <p>Latest build: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} (prerelease){% endif %}</p>
     {% endif %}
   </div>
 </footer>

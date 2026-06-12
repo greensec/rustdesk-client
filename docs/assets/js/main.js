@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (encoded && qrContainer && typeof QRCode !== 'undefined') {
     qrContainer.innerHTML = '';
+    qrContainer.setAttribute('aria-label', 'QR code for the RustDesk server configuration');
     new QRCode(qrContainer, {
       text: encoded,
       width: 200,
@@ -25,6 +26,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const target = document.querySelector(targetSel);
       if (!target) return;
       const text = target.value || target.textContent || '';
+      if (!text.trim()) {
+        showToast('No config available to copy.');
+        return;
+      }
 
       copyText(text).then(function () {
         showToast('Copied to clipboard!');
@@ -53,6 +58,7 @@ function detectPlatform() {
   // Android user agents usually also contain "Linux", so check Android first.
   if (/Android/i.test(ua)) return 'android';
   if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+  if (/Mac/i.test(ua) && navigator.maxTouchPoints > 1) return 'ios';
   if (/Win/i.test(ua)) return 'windows';
   if (/Mac/i.test(ua)) return 'macos';
   if (/Linux/i.test(ua)) return 'linux';
@@ -168,14 +174,26 @@ function getAssetLabel(assetName) {
 
 function updateRecommendedDownload(platform) {
   const panel = document.getElementById('recommended-download');
-  if (!panel || !platform || platform === 'ios') return;
+  if (!panel || !platform) return;
 
   const title = document.getElementById('recommended-title');
   const description = document.getElementById('recommended-description');
   const link = document.getElementById('recommended-link');
   const card = document.querySelector('[data-platform="' + platform + '"]');
 
-  if (!title || !description || !link || !card) return;
+  if (!title || !description || !link) return;
+  link.removeAttribute('download');
+
+  if (platform === 'ios') {
+    panel.hidden = false;
+    title.textContent = 'No iOS build is provided here';
+    description.textContent = 'Use the server configuration below with a compatible RustDesk client.';
+    link.href = '#config';
+    link.textContent = 'View server config';
+    return;
+  }
+
+  if (!card) return;
 
   if (platform === 'macos') {
     panel.hidden = false;
@@ -220,6 +238,7 @@ function updateRecommendedDownload(platform) {
   description.textContent = label.description || 'Recommended for your detected platform.';
   link.href = recommended.href;
   link.textContent = 'Download';
+  link.setAttribute('download', '');
 }
 
 function copyText(text) {
