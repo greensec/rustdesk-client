@@ -3,18 +3,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const qrContainer = document.getElementById('qrcode');
 
   if (encoded && qrContainer && typeof QRCode !== 'undefined') {
-    QRCode.toCanvas(qrContainer, encoded, {
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, {
+      text: encoded,
       width: 200,
-      margin: 2,
-      color: {
-        dark: '#1e293b',
-        light: '#ffffff'
-      }
-    }, function (err) {
-      if (err) {
-        qrContainer.innerHTML = '<p style="color:#dc2626">Unable to generate QR code.</p>';
-        console.error(err);
-      }
+      height: 200,
+      colorDark: '#1e293b',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
     });
   } else if (qrContainer) {
     qrContainer.innerHTML = '<p style="color:#64748b">No config available.</p>';

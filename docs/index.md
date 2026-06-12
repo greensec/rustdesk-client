@@ -30,7 +30,7 @@ window.RUSTDESK_CONFIG = {
       <!-- Linux -->
       <div class="card" data-platform="linux">
         <h3>
-          <span class="icon">🐧</span>
+          <i class="ti ti-brand-ubuntu icon"></i>
           Linux
         </h3>
         {% if site.data.release.assets.linux.size > 0 %}
@@ -47,7 +47,7 @@ window.RUSTDESK_CONFIG = {
       <!-- Windows -->
       <div class="card" data-platform="windows">
         <h3>
-          <span class="icon">🪟</span>
+          <i class="ti ti-brand-windows icon"></i>
           Windows
         </h3>
         {% if site.data.release.assets.windows.size > 0 %}
@@ -64,7 +64,7 @@ window.RUSTDESK_CONFIG = {
       <!-- macOS -->
       <div class="card" data-platform="macos">
         <h3>
-          <span class="icon">🍎</span>
+          <i class="ti ti-brand-apple icon"></i>
           macOS
         </h3>
         {% assign macos_x64 = site.data.release.upstream_macos.x64 %}
@@ -89,7 +89,7 @@ window.RUSTDESK_CONFIG = {
       <!-- Android -->
       <div class="card" data-platform="android">
         <h3>
-          <span class="icon">🤖</span>
+          <i class="ti ti-brand-android icon"></i>
           Android
         </h3>
         {% if site.data.release.assets.android.size > 0 %}
@@ -147,9 +147,9 @@ window.RUSTDESK_CONFIG = {
           <p style="margin-top: 0;">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
           <textarea class="config-string" id="config-string" readonly>{{ site.data.config.encoded_string }}</textarea>
           <div class="btn-group">
-            <button class="btn" data-copy="#config-string">📋 Copy Config</button>
+            <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> Copy Config</button>
             {% if site.data.config.encoded_string != "" %}
-            <button class="btn" data-copy="#config-string">📱 Copy for Mobile</button>
+            <button class="btn" data-copy="#config-string"><i class="ti ti-device-mobile"></i> Copy for Mobile</button>
             {% endif %}
           </div>
 
