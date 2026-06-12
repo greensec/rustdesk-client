@@ -14,6 +14,27 @@ def yaml_string(value: str) -> str:
     return json.dumps(value)
 
 
+def encode_rustdesk_server_config(cfg: dict[str, str]) -> str:
+    """Return the server config string expected by RustDesk's Import Server Config.
+
+    RustDesk's Flutter client encodes ServerConfig as JSON with the short keys
+    `host`, `relay`, `api`, and `key`, base64-url-encodes that JSON, then
+    reverses the encoded string. The import path reverses the string again before
+    base64 decoding it.
+    """
+
+    payload = json.dumps(
+        {
+            "host": cfg["id_server"],
+            "relay": cfg["relay_server"],
+            "api": cfg["api_server"],
+            "key": cfg["key"],
+        },
+        separators=(",", ":"),
+    )
+    return base64.urlsafe_b64encode(payload.encode()).decode()[::-1]
+
+
 def latest_release(repo: str) -> dict:
     result = subprocess.run(
         ["gh", "api", f"repos/{repo}/releases", "--jq", "map(select(.draft == false))[0]"],
@@ -150,8 +171,7 @@ def generate_config_yml() -> None:
         "key": os.environ.get("RS_PUB_KEY", ""),
     }
 
-    payload = json.dumps(cfg, separators=(",", ":"))
-    encoded = base64.b64encode(payload.encode()).decode()
+    encoded = encode_rustdesk_server_config(cfg)
 
     out = pathlib.Path("docs/_data/config.yml")
     out.parent.mkdir(parents=True, exist_ok=True)
