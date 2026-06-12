@@ -15,6 +15,10 @@ window.RUSTDESK_CONFIG = {
 
 <header class="site-header">
   <div class="container">
+    <div class="lang-selector" aria-label="Language selector">
+      <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      <button class="lang-btn" data-lang="de" aria-pressed="false">DE</button>
+    </div>
     <h1>{{ site.data.config.client_name | default: site.title }}</h1>
     <p data-i18n="hero.subtitle">Download custom RustDesk clients for your self-hosted server.</p>
     <p class="hero-caveat" data-i18n="hero.caveat">Linux, Windows, and Android builds are pre-configured. macOS uses official upstream builds and needs manual config import.</p>

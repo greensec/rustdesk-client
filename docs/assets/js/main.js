@@ -173,6 +173,21 @@ document.addEventListener('DOMContentLoaded', function () {
   currentLanguage = getPreferredLanguage();
   applyLanguage(currentLanguage);
 
+  // Set initial active state on language selector
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
+    const isActive = btn.getAttribute('data-lang') === currentLanguage;
+    btn.classList.toggle('is-active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
+
+  // Language selector click handlers
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const lang = btn.getAttribute('data-lang');
+      if (lang) switchLanguage(lang);
+    });
+  });
+
   const encoded = window.RUSTDESK_CONFIG?.encoded_string || '';
   const qrContainer = document.getElementById('qrcode');
 
@@ -243,6 +258,25 @@ function getPreferredLanguage() {
   return languages.some(function (language) {
     return /^de\b/i.test(language);
   }) ? 'de' : 'en';
+}
+
+function switchLanguage(language) {
+  if (!I18N[language] || language === currentLanguage) return;
+
+  currentLanguage = language;
+  applyLanguage(language);
+
+  // Update URL without reload
+  const url = new URL(window.location);
+  url.searchParams.set('lang', language);
+  window.history.replaceState({}, '', url);
+
+  // Update active button state
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
+    const isActive = btn.getAttribute('data-lang') === language;
+    btn.classList.toggle('is-active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
 }
 
 function applyLanguage(language) {
