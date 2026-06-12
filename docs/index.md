@@ -17,6 +17,10 @@ window.RUSTDESK_CONFIG = {
   <div class="container">
     <h1>{{ site.data.config.client_name | default: site.title }}</h1>
     <p>Download pre-configured clients for your self-hosted RustDesk server</p>
+    <div class="hero-actions" aria-label="Primary actions">
+      <a class="btn btn-hero" href="#downloads">View downloads</a>
+      <a class="btn btn-hero btn-secondary" href="#config">Copy server config</a>
+    </div>
   </div>
 </header>
 
@@ -25,6 +29,14 @@ window.RUSTDESK_CONFIG = {
   <!-- Downloads -->
   <section class="section" id="downloads">
     <h2 class="section-title">Downloads</h2>
+
+    <div class="recommended-download" id="recommended-download" hidden>
+      <p class="eyebrow">Recommended for this device</p>
+      <h3 id="recommended-title">Choose a download</h3>
+      <p id="recommended-description"></p>
+      <a class="btn" id="recommended-link" href="#downloads">View options</a>
+    </div>
+
     <div class="download-grid">
 
       <!-- Linux -->
@@ -33,10 +45,11 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-ubuntu icon"></i>
           Linux
         </h3>
+        <p class="detected-label" hidden>Detected on this device</p>
         {% if site.data.release.assets.linux.size > 0 %}
         <ul>
           {% for asset in site.data.release.assets.linux %}
-          <li><a href="{{ asset.url }}" download>{{ asset.name }}</a></li>
+          <li><a class="download-link" href="{{ asset.url }}" download data-asset-name="{{ asset.name | escape }}">{{ asset.name }}</a></li>
           {% endfor %}
         </ul>
         {% else %}
@@ -50,10 +63,11 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-windows icon"></i>
           Windows
         </h3>
+        <p class="detected-label" hidden>Detected on this device</p>
         {% if site.data.release.assets.windows.size > 0 %}
         <ul>
           {% for asset in site.data.release.assets.windows %}
-          <li><a href="{{ asset.url }}" download>{{ asset.name }}</a></li>
+          <li><a class="download-link" href="{{ asset.url }}" download data-asset-name="{{ asset.name | escape }}">{{ asset.name }}</a></li>
           {% endfor %}
         </ul>
         {% else %}
@@ -67,19 +81,21 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-apple icon"></i>
           macOS
         </h3>
+        <p class="detected-label" hidden>Detected on this device</p>
         {% assign macos_x64 = site.data.release.upstream_macos.x64 %}
         {% assign macos_arm64 = site.data.release.upstream_macos.arm64 %}
         {% if macos_x64.url != "" or macos_arm64.url != "" %}
         <ul>
           {% if macos_x64.url != "" %}
-          <li><a href="{{ macos_x64.url }}" download>{{ macos_x64.name }}</a></li>
+          <li><a class="download-link" href="{{ macos_x64.url }}" download data-asset-name="{{ macos_x64.name | escape }}">{{ macos_x64.name }}</a></li>
           {% endif %}
           {% if macos_arm64.url != "" %}
-          <li><a href="{{ macos_arm64.url }}" download>{{ macos_arm64.name }}</a></li>
+          <li><a class="download-link" href="{{ macos_arm64.url }}" download data-asset-name="{{ macos_arm64.name | escape }}">{{ macos_arm64.name }}</a></li>
           {% endif %}
         </ul>
         <div class="note">
-          These are official upstream builds. They do not include your self-hosted server configuration — see the instructions below to configure them manually.
+          These are official upstream builds. They do not include your self-hosted server configuration.
+          <a href="#config">Copy the server config after installing.</a>
         </div>
         {% else %}
         <p style="color: var(--text-muted); font-size: 0.875rem;">No macOS builds available yet.</p>
@@ -92,10 +108,11 @@ window.RUSTDESK_CONFIG = {
           <i class="ti ti-brand-android icon"></i>
           Android
         </h3>
+        <p class="detected-label" hidden>Detected on this device</p>
         {% if site.data.release.assets.android.size > 0 %}
         <ul>
           {% for asset in site.data.release.assets.android %}
-          <li><a href="{{ asset.url }}" download>{{ asset.name }}</a></li>
+          <li><a class="download-link" href="{{ asset.url }}" download data-asset-name="{{ asset.name | escape }}">{{ asset.name }}</a></li>
           {% endfor %}
         </ul>
         {% else %}
