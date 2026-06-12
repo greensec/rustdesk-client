@@ -1382,6 +1382,7 @@ jobs:
       - name: Generate docs data files
         shell: bash
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.publish_release.outputs.tag }}
           RELEASE_TITLE: ${{ needs.publish_release.outputs.title }}
@@ -1399,6 +1400,6 @@ jobs:
       - name: Commit and push updated docs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: update release and config data [skip ci]"
+          commit_message: "docs: update release and config data"
           file_pattern: "docs/_data/*.yml"
           branch: ${{ github.ref_name }}
