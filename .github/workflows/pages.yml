@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'scripts/generate_docs_data.py'
+      - '.github/workflows/pages.yml'
+  release:
+    types: [published, edited]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +26,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Refresh latest release data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: python3 scripts/generate_docs_data.py --release-only
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll
