@@ -20,12 +20,6 @@ window.RUSTDESK_CONFIG = {
       <button class="lang-btn" data-lang="de" aria-pressed="false">DE</button>
     </div>
     <h1>{{ site.data.config.client_name | default: site.title }}</h1>
-    <p data-i18n="hero.subtitle">Download custom RustDesk clients for your self-hosted server.</p>
-    <p class="hero-caveat" data-i18n="hero.caveat">Linux, Windows, and Android builds are pre-configured. macOS uses official upstream builds and needs manual config import.</p>
-    <div class="hero-actions" aria-label="Primary actions" data-i18n-aria-label="hero.actionsLabel">
-      <a class="btn btn-hero" href="#downloads" data-i18n="hero.viewDownloads">View downloads</a>
-      <a class="btn btn-hero btn-secondary" href="#config" data-i18n="hero.copyConfig">Copy server config</a>
-    </div>
   </div>
 </header>
 
@@ -40,23 +34,6 @@ window.RUSTDESK_CONFIG = {
       <h3 id="recommended-title" data-i18n="recommended.defaultTitle">Choose a download</h3>
       <p id="recommended-description"></p>
       <a class="btn" id="recommended-link" href="#downloads" data-i18n="recommended.defaultCta">View options</a>
-    </div>
-
-    <div class="release-summary" aria-label="Release summary" data-i18n-aria-label="release.summaryLabel">
-      {% if site.data.release.tag != "" %}
-      <div>
-        <span data-i18n="release.latestBuild">Latest build</span>
-        <strong>{{ site.data.release.tag }}</strong>
-      </div>
-      {% endif %}
-      <div>
-        <span data-i18n="release.preconfiguredLabel">Pre-configured builds</span>
-        <strong data-i18n="release.preconfiguredValue">Linux · Windows · Android</strong>
-      </div>
-      <div>
-        <span data-i18n="release.manualLabel">Manual configuration</span>
-        <strong data-i18n="release.manualValue">macOS official builds</strong>
-      </div>
     </div>
 
     <div class="download-grid">
