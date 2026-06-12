@@ -123,30 +123,37 @@ window.RUSTDESK_CONFIG = {
     </div>
   </section>
 
-  <!-- macOS Instructions -->
+  <!-- Manual Setup Instructions -->
   {% if site.data.release.upstream_macos.x64.url != "" or site.data.release.upstream_macos.arm64.url != "" %}
-  <section class="section" id="macos-instructions">
-    <h2 class="section-title">macOS Setup Instructions</h2>
+  <section class="section" id="manual-instructions">
+    <h2 class="section-title">Manual Setup Instructions</h2>
     <div class="config-section">
-      <p>The official macOS client does not come pre-configured with your self-hosted server settings. After downloading and installing, follow these steps:</p>
+      <p>Official clients (e.g. macOS) do not come pre-configured. After downloading and installing, use the <strong>Import Server Config</strong> option and paste the config string from the section below.</p>
+
       <div class="instructions">
+        <h4><i class="ti ti-copy"></i> Quick Import (recommended)</h4>
         <ol>
           <li>Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.</li>
           <li>Select <strong>Network</strong> and unlock the settings with elevated privileges.</li>
-          <li>In the <strong>ID Server</strong> field, enter:<br><code>{{ site.data.config.id_server | default: "your-id-server" }}</code></li>
+          <li>Click <strong>Import Server Config</strong> and paste the config string from the <a href="#config">Server Configuration</a> section.</li>
+        </ol>
+      </div>
+
+      <div class="instructions" style="margin-top: 16px;">
+        <h4><i class="ti ti-keyboard"></i> Manual Entry</h4>
+        <ol>
+          <li>Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
+          <li><strong>ID Server</strong>: <code>{{ site.data.config.id_server | default: "—" }}</code></li>
           {% if site.data.config.relay_server != "" %}
-          <li>In the <strong>Relay Server</strong> field, enter:<br><code>{{ site.data.config.relay_server }}</code></li>
+          <li><strong>Relay Server</strong>: <code>{{ site.data.config.relay_server }}</code></li>
           {% endif %}
           {% if site.data.config.api_server != "" %}
-          <li>In the <strong>API Server</strong> field, enter:<br><code>{{ site.data.config.api_server }}</code></li>
+          <li><strong>API Server</strong>: <code>{{ site.data.config.api_server }}</code></li>
           {% endif %}
-          <li>In the <strong>Key</strong> field, paste the public key.</li>
+          <li><strong>Key</strong>: <code>{{ site.data.config.key | default: "—" }}</code></li>
           <li>Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
       </div>
-      <p style="margin-top: 12px; font-size: 0.875rem; color: var(--text-muted);">
-        Alternatively, you can use the <strong>Import Server Config</strong> option and paste the config string from the section below.
-      </p>
     </div>
   </section>
   {% endif %}

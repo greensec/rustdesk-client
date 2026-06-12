@@ -27,7 +27,7 @@ runs:
         echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
     - name: Setup Rust on Linux/Windows
-      if: inputs.target != 'macos'
+      if: inputs.target == 'linux' || inputs.target == 'windows'
       shell: bash
       env:
         RUST_VERSION: ${{ inputs.rust_version }}

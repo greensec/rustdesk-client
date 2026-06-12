@@ -34,6 +34,30 @@ def infer_rustdesk_ref(tag: str) -> str:
     return tag
 
 
+def asset_sort_key(item: dict) -> tuple[int, str]:
+    name = item["name"].lower()
+
+    order = [
+        ("linux-x86_64.appimage", 10),
+        ("linux-x86_64.deb", 20),
+        ("linux-x86_64.rpm", 30),
+        ("linux-x86_64-suse.rpm", 40),
+        ("linux-x86_64.flatpak", 50),
+        ("windows-x86_64-portable.exe", 10),
+        ("windows-x86_64.exe", 20),
+        ("android-arm64-v8a.apk", 10),
+        ("android-armeabi-v7a.apk", 20),
+        ("android-x86_64.apk", 30),
+        ("android-x86.apk", 40),
+    ]
+
+    for marker, rank in order:
+        if marker in name:
+            return rank, name
+
+    return 100, name
+
+
 def generate_release_yml() -> None:
     repo = os.environ["REPO"]
     tag = os.environ.get("RELEASE_TAG", "")
@@ -82,8 +106,9 @@ def generate_release_yml() -> None:
                 release["assets"]["windows"].append(item)
             elif "android" in name or name.endswith(".apk"):
                 release["assets"]["android"].append(item)
-    except Exception:
-        pass
+    except subprocess.CalledProcessError as exc:
+        print(exc.stderr.strip())
+        raise
 
     # Upstream macOS URLs (constructed from known RustDesk release naming)
     upstream_version = rustdesk_ref.lstrip("v")
@@ -107,7 +132,7 @@ def generate_release_yml() -> None:
         f.write("assets:\n")
         for plat in ("linux", "windows", "android"):
             f.write(f"  {plat}:\n")
-            for item in release["assets"][plat]:
+            for item in sorted(release["assets"][plat], key=asset_sort_key):
                 f.write(f"    - name: {yaml_string(item['name'])}\n")
                 f.write(f"      url: {yaml_string(item['url'])}\n")
         f.write("upstream_macos:\n")

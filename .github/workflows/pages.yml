@@ -30,6 +30,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+          RELEASE_TITLE: ${{ github.event_name == 'release' && github.event.release.name || '' }}
+          RELEASE_PRERELEASE: ${{ github.event_name == 'release' && github.event.release.prerelease || '' }}
         run: python3 scripts/generate_docs_data.py --release-only
       - name: Setup Pages
         uses: actions/configure-pages@v5

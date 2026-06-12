@@ -235,6 +235,18 @@ jobs:
       - name: Checkout builder repo
         uses: actions/checkout@v4
 
+      - name: Free Disk Space (Ubuntu)
+        if: ${{ inputs.use_github_runners }}
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+
       - name: Cache Cargo registry
         uses: actions/cache@v4
         with:
@@ -714,7 +726,7 @@ jobs:
   macos_x64:
     needs: generate_bridge
     if: ${{ inputs.build_macos_x64 }}
-    runs-on: [self-hosted, macOS, X64]
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["macos-15-intel"]' || '["self-hosted", "macOS", "X64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -849,8 +861,8 @@ jobs:
 
   macos_arm64:
     needs: generate_bridge
-    if: ${{ inputs.build_macos_arm64 && inputs.use_github_runners }}
-    runs-on: macos-latest
+    if: ${{ inputs.build_macos_arm64 }}
+    runs-on: ${{ fromJSON(inputs.use_github_runners && '["macos-15"]' || '["self-hosted", "macOS", "ARM64"]') }}
 
     steps:
       - name: Checkout builder repo
@@ -1102,7 +1114,7 @@ jobs:
       - name: Setup vcpkg
         uses: ./.github/actions/setup-vcpkg
         with:
-          target: linux
+          target: android
           vcpkg_commit_id: ${{ env.VCPKG_COMMIT_ID }}
 
       - name: Build Android native dependencies
@@ -1191,10 +1203,26 @@ jobs:
           mkdir -p ./flutter/android/app/src/main/jniLibs/x86_64
           cp ./target/x86_64-linux-android/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
 
-          # Copy libc++_shared.so for each ABI
-          cp "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so" ./flutter/android/app/src/main/jniLibs/arm64-v8a/
-          cp "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so" ./flutter/android/app/src/main/jniLibs/armeabi-v7a/
-          cp "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so" ./flutter/android/app/src/main/jniLibs/x86_64/
+          # Copy libc++_shared.so for each ABI. NDK layout can vary, so
+          # resolve it instead of assuming one exact path.
+          copy_libcxx_shared() {
+            local triple="$1"
+            local abi="$2"
+            local base="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${triple}"
+            local lib
+
+            lib="$(find "$base" -maxdepth 2 -type f -name 'libc++_shared.so' | sort -V | head -n 1)"
+            if [ -z "$lib" ]; then
+              echo "libc++_shared.so not found for ${triple} under ${base}" >&2
+              exit 1
+            fi
+
+            cp "$lib" "./flutter/android/app/src/main/jniLibs/${abi}/"
+          }
+
+          copy_libcxx_shared aarch64-linux-android arm64-v8a
+          copy_libcxx_shared arm-linux-androideabi armeabi-v7a
+          copy_libcxx_shared x86_64-linux-android x86_64
 
       - name: Build Flutter APK
         shell: bash
@@ -1273,13 +1301,128 @@ jobs:
 
           mkdir -p release-assets
 
-          while IFS= read -r -d '' file; do
+          asset_ref="$INPUT_RUSTDESK_REF"
+          if [[ "$asset_ref" =~ ^v[0-9] ]]; then
+            asset_ref="${asset_ref#v}"
+          fi
+          safe_ref="$(printf '%s' "$asset_ref" | sed 's#[^A-Za-z0-9._-]#-#g')"
+
+          normalized_release_asset_name() {
+            local file="$1"
+            local artifact_name="$2"
+            local base lower ext arch abi
+
             base="$(basename "$file")"
-            dest="release-assets/$base"
-            if [ -e "$dest" ]; then
-              artifact_name="$(basename "$(dirname "$file")")"
-              dest="release-assets/${artifact_name}-${base}"
+            lower="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+
+            if [[ "$lower" == *.tar.gz ]]; then
+              ext=".tar.gz"
+            elif [[ "$lower" == *.appimage ]]; then
+              ext=".AppImage"
+            else
+              ext=".${base##*.}"
             fi
+
+            case "$lower" in
+              *.deb)
+                echo "rustdesk-client-${safe_ref}-linux-x86_64.deb"
+                return 0
+                ;;
+              *.appimage)
+                echo "rustdesk-client-${safe_ref}-linux-x86_64.AppImage"
+                return 0
+                ;;
+              *.flatpak)
+                echo "rustdesk-client-${safe_ref}-linux-x86_64.flatpak"
+                return 0
+                ;;
+              *.rpm)
+                if [[ "$lower" == *suse* ]]; then
+                  echo "rustdesk-client-${safe_ref}-linux-x86_64-suse.rpm"
+                else
+                  echo "rustdesk-client-${safe_ref}-linux-x86_64.rpm"
+                fi
+                return 0
+                ;;
+              *.exe)
+                if [[ "$lower" == *portable* ]]; then
+                  echo "rustdesk-client-${safe_ref}-windows-x86_64-portable.exe"
+                else
+                  echo "rustdesk-client-${safe_ref}-windows-x86_64.exe"
+                fi
+                return 0
+                ;;
+              *.apk)
+                if [[ "$lower" == *arm64-v8a* ]]; then
+                  abi="arm64-v8a"
+                elif [[ "$lower" == *armeabi-v7a* ]]; then
+                  abi="armeabi-v7a"
+                elif [[ "$lower" == *x86_64* ]]; then
+                  abi="x86_64"
+                elif [[ "$lower" == *x86* ]]; then
+                  abi="x86"
+                else
+                  abi="universal"
+                fi
+                echo "rustdesk-client-${safe_ref}-android-${abi}.apk"
+                return 0
+                ;;
+            esac
+
+            if [[ "$artifact_name" == *macos* || "$lower" == *macos* || "$lower" == *.dmg || "$lower" == *.pkg ]]; then
+              if [[ "$artifact_name" == *arm64* || "$lower" == *arm64* || "$lower" == *aarch64* ]]; then
+                arch="arm64"
+              elif [[ "$artifact_name" == *x64* || "$artifact_name" == *x86_64* || "$lower" == *x86_64* ]]; then
+                arch="x86_64"
+              else
+                arch="universal"
+              fi
+              echo "rustdesk-client-${safe_ref}-macos-${arch}${ext}"
+              return 0
+            fi
+
+            if [[ "$artifact_name" == *windows* && "$lower" == *.zip ]]; then
+              echo "rustdesk-client-${safe_ref}-windows-x86_64.zip"
+              return 0
+            fi
+
+            if [[ "$artifact_name" == *linux* && ( "$lower" == *.zip || "$lower" == *.tar.gz ) ]]; then
+              echo "rustdesk-client-${safe_ref}-linux-x86_64${ext}"
+              return 0
+            fi
+
+            # Fallback for unexpected artifact types: keep a deterministic,
+            # sanitized name while still applying the rustdesk-client prefix.
+            safe_artifact_name="$(printf '%s' "$artifact_name" | sed 's#[^A-Za-z0-9._-]#-#g')"
+            safe_base="$(printf '%s' "$base" | sed 's#[^A-Za-z0-9._-]#-#g')"
+            printf 'rustdesk-client-%s-%s-%s' "$safe_ref" "$safe_artifact_name" "$safe_base"
+          }
+
+          dedupe_release_asset_path() {
+            local path="$1"
+            local stem ext n
+
+            if [[ "$path" == *.tar.gz ]]; then
+              stem="${path%.tar.gz}"
+              ext=".tar.gz"
+            else
+              stem="${path%.*}"
+              ext=".${path##*.}"
+            fi
+
+            n=2
+            while [ -e "$path" ]; do
+              path="${stem}-${n}${ext}"
+              n=$((n + 1))
+            done
+
+            echo "$path"
+          }
+
+          while IFS= read -r -d '' file; do
+            artifact_name="$(basename "$(dirname "$file")")"
+            asset_name="$(normalized_release_asset_name "$file" "$artifact_name")"
+            dest="$(dedupe_release_asset_path "release-assets/${asset_name}")"
             cp "$file" "$dest"
           done < <(find downloaded-artifacts -type f -print0 | sort -z)
 
@@ -1291,7 +1434,6 @@ jobs:
 
           release_tag="$INPUT_RELEASE_TAG"
           if [ -z "$release_tag" ]; then
-            safe_ref="$(printf '%s' "$INPUT_RUSTDESK_REF" | sed 's#[^A-Za-z0-9._-]#-#g')"
             release_tag="rustdesk-client-${safe_ref}-${GITHUB_RUN_NUMBER}"
           fi
 

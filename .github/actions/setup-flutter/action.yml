@@ -46,24 +46,6 @@ runs:
           flutter precache --linux
         fi
 
-    - name: Precache Flutter artifacts
-      shell: bash
-      run: |
-        set -euo pipefail
-
-        flutter --version
-        dart --version
-
-        if [ "${{ inputs.target }}" = "windows" ]; then
-          flutter precache --windows
-        elif [ "${{ inputs.target }}" = "macos" ]; then
-          flutter precache --macos
-        elif [ "${{ inputs.target }}" = "android" ]; then
-          flutter precache --android
-        else
-          flutter precache --linux
-        fi
-
     - name: Patch Flutter
       shell: bash
       run: |
@@ -78,8 +60,11 @@ runs:
           if git apply --check "$PATCH_FILE"; then
             git apply "$PATCH_FILE"
             echo "Flutter patch applied"
+          elif git apply --reverse --check "$PATCH_FILE"; then
+            echo "Flutter patch already applied"
           else
-            echo "Flutter patch already applied or incompatible; continuing"
+            echo "Flutter patch is incompatible with the selected Flutter/RustDesk ref" >&2
+            exit 1
           fi
         else
           echo "Flutter patch file not found; continuing"

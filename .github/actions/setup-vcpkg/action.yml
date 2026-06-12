@@ -3,7 +3,7 @@ description: Clone, bootstrap vcpkg and install dependencies
 
 inputs:
   target:
-    description: Target platform (linux, windows, macos)
+    description: Target platform (linux, windows, macos, android)
     required: true
   vcpkg_commit_id:
     description: vcpkg commit ID to checkout
