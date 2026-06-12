@@ -240,12 +240,23 @@ body {
 
 .download-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 20px;
 }
 
+.card-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.card-column > .card {
+  flex: 1 1 auto;
+}
+
 .card {
-  background: var(--card-bg);
+  background: linear-gradient(180deg, var(--primary-soft) 0%, var(--card-bg) 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: clamp(18px, 5vw, 24px);
@@ -577,6 +588,16 @@ button:focus-visible,
 .toast.show {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .download-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-column {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 640px) {

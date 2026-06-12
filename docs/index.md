@@ -56,49 +56,52 @@ window.RUSTDESK_CONFIG = {
         {% endif %}
       </div>
 
-      <!-- Windows -->
-      <div class="card" data-platform="windows">
-        <h3>
-          <i class="ti ti-brand-windows icon"></i>
-          Windows
-        </h3>
-        <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
-        {% if site.data.release.assets.windows.size > 0 %}
-        <ul>
-          {% for asset in site.data.release.assets.windows %}
-          <li><a class="download-link" href="{{ asset.url }}" download data-asset-name="{{ asset.name | escape }}">{{ asset.name }}</a></li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="no-build" data-i18n="noBuild.windows">No Windows builds available yet.</p>
-        {% endif %}
-      </div>
-
-      <!-- macOS -->
-      <div class="card" data-platform="macos">
-        <h3>
-          <i class="ti ti-brand-apple icon"></i>
-          macOS
-        </h3>
-        <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
-        {% assign macos_x64 = site.data.release.upstream_macos.x64 %}
-        {% assign macos_arm64 = site.data.release.upstream_macos.arm64 %}
-        {% if macos_x64.url != "" or macos_arm64.url != "" %}
-        <ul>
-          {% if macos_x64.url != "" %}
-          <li><a class="download-link" href="{{ macos_x64.url }}" download data-asset-name="{{ macos_x64.name | escape }}">{{ macos_x64.name }}</a></li>
+      <!-- Windows + macOS column -->
+      <div class="card-column">
+        <!-- Windows -->
+        <div class="card" data-platform="windows">
+          <h3>
+            <i class="ti ti-brand-windows icon"></i>
+            Windows
+          </h3>
+          <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
+          {% if site.data.release.assets.windows.size > 0 %}
+          <ul>
+            {% for asset in site.data.release.assets.windows %}
+            <li><a class="download-link" href="{{ asset.url }}" download data-asset-name="{{ asset.name | escape }}">{{ asset.name }}</a></li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="no-build" data-i18n="noBuild.windows">No Windows builds available yet.</p>
           {% endif %}
-          {% if macos_arm64.url != "" %}
-          <li><a class="download-link" href="{{ macos_arm64.url }}" download data-asset-name="{{ macos_arm64.name | escape }}">{{ macos_arm64.name }}</a></li>
-          {% endif %}
-        </ul>
-        <div class="note">
-          <span data-i18n="macos.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
-          <a href="#config" data-i18n="macos.noteLink">See the manual setup steps.</a>
         </div>
-        {% else %}
-        <p class="no-build" data-i18n="noBuild.macos">No macOS builds available yet.</p>
-        {% endif %}
+
+        <!-- macOS -->
+        <div class="card" data-platform="macos">
+          <h3>
+            <i class="ti ti-brand-apple icon"></i>
+            macOS
+          </h3>
+          <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
+          {% assign macos_x64 = site.data.release.upstream_macos.x64 %}
+          {% assign macos_arm64 = site.data.release.upstream_macos.arm64 %}
+          {% if macos_x64.url != "" or macos_arm64.url != "" %}
+          <ul>
+            {% if macos_x64.url != "" %}
+            <li><a class="download-link" href="{{ macos_x64.url }}" download data-asset-name="{{ macos_x64.name | escape }}">{{ macos_x64.name }}</a></li>
+            {% endif %}
+            {% if macos_arm64.url != "" %}
+            <li><a class="download-link" href="{{ macos_arm64.url }}" download data-asset-name="{{ macos_arm64.name | escape }}">{{ macos_arm64.name }}</a></li>
+            {% endif %}
+          </ul>
+          <div class="note">
+            <span data-i18n="macos.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
+            <a href="#config" data-i18n="macos.noteLink">See the manual setup steps.</a>
+          </div>
+          {% else %}
+          <p class="no-build" data-i18n="noBuild.macos">No macOS builds available yet.</p>
+          {% endif %}
+        </div>
       </div>
 
       <!-- Android -->
