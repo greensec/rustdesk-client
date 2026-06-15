@@ -664,6 +664,49 @@ jobs:
             --vram `
             --skip-portable-pack
 
+          $releasePath = "flutter\build\windows\x64\runner\Release"
+          if (!(Test-Path $releasePath)) {
+            throw "Windows Flutter release directory not found: $releasePath"
+          }
+
+          if (Test-Path "rustdesk") {
+            Remove-Item -Recurse -Force "rustdesk"
+          }
+          New-Item -ItemType Directory -Force -Path "rustdesk" | Out-Null
+          Copy-Item -Path "$releasePath\*" -Destination "rustdesk" -Recurse -Force
+
+          # Download usbmmidd_v2 and extract into rustdesk
+          Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
+          Expand-Archive usbmmidd_v2.zip -DestinationPath .
+          Remove-Item -Path "usbmmidd_v2\Win32" -Recurse
+          Remove-Item -Path "usbmmidd_v2\deviceinstaller64.exe", "usbmmidd_v2\deviceinstaller.exe", "usbmmidd_v2\usbmmidd.bat"
+          Move-Item -Path .\usbmmidd_v2 -Destination .\rustdesk -Force
+
+          # Download printer driver files
+          try {
+            Invoke-WebRequest -Uri https://github.com/rustdesk/hbb_common/releases/download/driver/rustdesk_printer_driver_v4-1.4.zip -OutFile rustdesk_printer_driver_v4-1.4.zip
+            Invoke-WebRequest -Uri https://github.com/rustdesk/hbb_common/releases/download/driver/printer_driver_adapter.zip -OutFile printer_driver_adapter.zip
+            Invoke-WebRequest -Uri https://github.com/rustdesk/hbb_common/releases/download/driver/sha256sums -OutFile sha256sums
+
+            $checksum_driver = (Select-String -Path .\sha256sums -Pattern '^([a-fA-F0-9]{64}) \*rustdesk_printer_driver_v4-1\.4\.zip$').Matches.Groups[1].Value
+            $downloadsum_driver = Get-FileHash -Path rustdesk_printer_driver_v4-1.4.zip -Algorithm SHA256
+            $checksum_adapter = (Select-String -Path .\sha256sums -Pattern '^([a-fA-F0-9]{64}) \*printer_driver_adapter\.zip$').Matches.Groups[1].Value
+            $downloadsum_adapter = Get-FileHash -Path printer_driver_adapter.zip -Algorithm SHA256
+
+            if ($checksum_driver -eq $downloadsum_driver.Hash -and $checksum_adapter -eq $downloadsum_adapter.Hash) {
+              Write-Output "rustdesk_printer_driver_v4-1.4, checksums match, extract the file."
+              Expand-Archive rustdesk_printer_driver_v4-1.4.zip -DestinationPath .
+              New-Item -ItemType Directory -Force -Path .\rustdesk\drivers | Out-Null
+              Move-Item -Path .\rustdesk_printer_driver_v4-1.4 -Destination .\rustdesk\drivers\RustDeskPrinterDriver -Force
+              Expand-Archive printer_driver_adapter.zip -DestinationPath .
+              Move-Item -Path .\printer_driver_adapter.dll -Destination .\rustdesk -Force
+            } else {
+              Write-Output "rustdesk_printer_driver_v4-1.4 or printer_driver_adapter.dll, checksums do not match, ignore the file."
+            }
+          } catch {
+            Write-Host "Ignore the printer driver error."
+          }
+
       - name: Package Windows portable executable
         shell: powershell
         run: |
@@ -671,21 +714,10 @@ jobs:
 
           cd rustdesk
 
-          $releasePath = "flutter\build\windows\x64\runner\Release"
-          if (!(Test-Path $releasePath)) {
-            throw "Windows Flutter release directory not found: $releasePath"
-          }
-
           $portableInput = "rustdesk"
-          if (Test-Path $portableInput) {
-            Remove-Item -Recurse -Force $portableInput
-          }
-          New-Item -ItemType Directory -Force -Path $portableInput | Out-Null
-          Copy-Item -Path "$releasePath\*" -Destination $portableInput -Recurse -Force
-
           $portableExe = Join-Path $portableInput "rustdesk.exe"
           if (!(Test-Path $portableExe)) {
-            throw "rustdesk.exe not found in portable input directory: $portableInput"
+            throw "rustdesk.exe not found in input directory: $portableInput"
           }
 
           Push-Location "libs\portable"
@@ -708,7 +740,29 @@ jobs:
 
           $versionSafe = "${{ inputs.rustdesk_ref }}" -replace '[\\/:*?"<>| ]', '-'
           New-Item -ItemType Directory -Force -Path "dist" | Out-Null
-          Copy-Item $packerExe "dist\rustdesk-$versionSafe-windows-x86_64-portable.exe" -Force
+          Copy-Item $packerExe "dist\rustdesk-$versionSafe-windows-x86_64.exe" -Force
+          Get-ChildItem "dist"
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build MSI
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          cd rustdesk
+
+          Push-Location res\msi
+          python preprocess.py --arp -d ..\..\rustdesk --app-name "${{ vars.CLIENT_NAME }}"
+          nuget restore msi.sln
+          msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
+          Pop-Location
+
+          $versionSafe = "${{ inputs.rustdesk_ref }}" -replace '[\\/:*?"<>| ]', '-'
+          New-Item -ItemType Directory -Force -Path "dist" | Out-Null
+          Move-Item -Path "res\msi\Package\bin\x64\Release\en-us\Package.msi" `
+            -Destination "dist\rustdesk-$versionSafe-windows-x86_64.msi" -Force
           Get-ChildItem "dist"
 
       - name: Collect artifacts
@@ -1344,12 +1398,12 @@ jobs:
                 fi
                 return 0
                 ;;
+              *.msi)
+                echo "rustdesk-client-${safe_ref}-windows-x86_64.msi"
+                return 0
+                ;;
               *.exe)
-                if [[ "$lower" == *portable* ]]; then
-                  echo "rustdesk-client-${safe_ref}-windows-x86_64-portable.exe"
-                else
-                  echo "rustdesk-client-${safe_ref}-windows-x86_64.exe"
-                fi
+                echo "rustdesk-client-${safe_ref}-windows-x86_64.exe"
                 return 0
                 ;;
               *.apk)

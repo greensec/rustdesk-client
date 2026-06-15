@@ -64,8 +64,8 @@ def asset_sort_key(item: dict) -> tuple[int, str]:
         ("linux-x86_64.rpm", 30),
         ("linux-x86_64-suse.rpm", 40),
         ("linux-x86_64.flatpak", 50),
-        ("windows-x86_64-portable.exe", 10),
-        ("windows-x86_64.exe", 20),
+        ("windows-x86_64.exe", 10),
+        ("windows-x86_64.msi", 20),
         ("android-arm64-v8a.apk", 10),
         ("android-armeabi-v7a.apk", 20),
         ("android-x86_64.apk", 30),
@@ -123,7 +123,7 @@ def generate_release_yml() -> None:
             item = {"name": a["name"], "url": a["url"]}
             if "linux" in name or name.endswith((".deb", ".rpm", ".appimage", ".flatpak")):
                 release["assets"]["linux"].append(item)
-            elif "windows" in name or name.endswith(".exe"):
+            elif "windows" in name or name.endswith(".exe") or name.endswith(".msi"):
                 release["assets"]["windows"].append(item)
             elif "android" in name or name.endswith(".apk"):
                 release["assets"]["android"].append(item)
