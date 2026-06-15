@@ -1569,7 +1569,7 @@ jobs:
   update_pages:
     needs: publish_release
     runs-on: ubuntu-latest
-    if: ${{ inputs.publish_release }}
+    if: ${{ inputs.publish_release == true }}
     permissions:
       contents: write
     steps:
