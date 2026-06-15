@@ -26,14 +26,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Refresh latest release data
+      - name: Refresh docs data
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
           RELEASE_TITLE: ${{ github.event_name == 'release' && github.event.release.name || '' }}
           RELEASE_PRERELEASE: ${{ github.event_name == 'release' && github.event.release.prerelease || '' }}
-        run: python3 scripts/generate_docs_data.py --release-only
+          RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+          RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
+          API_SERVER: ${{ secrets.API_SERVER }}
+          RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
+          CLIENT_NAME: ${{ vars.CLIENT_NAME }}
+        run: python3 scripts/generate_docs_data.py
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll

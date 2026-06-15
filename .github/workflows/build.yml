@@ -6,7 +6,7 @@ on:
       rustdesk_ref:
         description: "RustDesk tag, branch, or commit to build"
         required: true
-        default: "1.4.6"
+        default: "1.4.7"
       publish_release:
         description: "Create or update a GitHub Release with the built packages"
         required: true
