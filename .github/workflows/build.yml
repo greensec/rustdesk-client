@@ -754,9 +754,12 @@ jobs:
           cd rustdesk
 
           Push-Location res\msi
-          python preprocess.py --arp -d ..\..\rustdesk --app-name "${{ vars.CLIENT_NAME }}"
+          python preprocess.py --arp -d ..\..\rustdesk
+          if ($LASTEXITCODE -ne 0) { throw "preprocess.py failed with exit code $LASTEXITCODE" }
           nuget restore msi.sln
+          if ($LASTEXITCODE -ne 0) { throw "nuget restore failed with exit code $LASTEXITCODE" }
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
+          if ($LASTEXITCODE -ne 0) { throw "msbuild failed with exit code $LASTEXITCODE" }
           Pop-Location
 
           $versionSafe = "${{ inputs.rustdesk_ref }}" -replace '[\\/:*?"<>| ]', '-'
