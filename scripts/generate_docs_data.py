@@ -182,6 +182,40 @@ def generate_config_yml() -> None:
         for k, v in cfg.items():
             f.write(f"{k}: {yaml_string(v)}\n")
 
+    # Generate static SVG QR code for server-side rendering
+    try:
+        import qrcode
+        import qrcode.image.svg
+
+        qr = qrcode.QRCode(
+            image_factory=qrcode.image.svg.SvgPathImage,
+            box_size=10,
+            border=2,
+        )
+        qr.add_data(encoded)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="#1e293b", back_color="#ffffff")
+
+        from io import BytesIO
+        buf = BytesIO()
+        img.save(buf)
+        svg = buf.getvalue().decode("utf-8")
+
+        # Clean up for inline use
+        import re
+        svg = svg.replace('<?xml version=\'1.0\' encoding=\'UTF-8\'?>', "")
+        svg = re.sub(r'width="\d+mm"\s+height="\d+mm"', 'width="200" height="200"', svg)
+        svg = re.sub(r'fill_color="[^"]*"\s+back_color="[^"]*"\s*', "", svg)
+        # Ensure the path uses the theme dark colour
+        svg = svg.replace('fill="#000000"', 'fill="#1e293b"')
+
+        inc = pathlib.Path("docs/_includes/qr-config.svg")
+        inc.parent.mkdir(parents=True, exist_ok=True)
+        with inc.open("w") as f:
+            f.write(svg.strip() + "\n")
+    except Exception as exc:
+        print(f"Warning: could not generate QR SVG: {exc}")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()

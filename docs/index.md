@@ -15,11 +15,13 @@ window.RUSTDESK_CONFIG = {
 
 <header class="site-header">
   <div class="container">
-    <div class="lang-selector" aria-label="Language selector">
-      <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
-      <button class="lang-btn" data-lang="de" aria-pressed="false">DE</button>
+    <div class="header-top">
+      <h1>{{ site.data.config.client_name | default: site.title }}</h1>
+      <div class="lang-selector" aria-label="Language selector">
+        <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        <button class="lang-btn" data-lang="de" aria-pressed="false">DE</button>
+      </div>
     </div>
-    <h1>{{ site.data.config.client_name | default: site.title }}</h1>
     <div class="hero-actions" aria-label="Primary actions" data-i18n-aria-label="hero.actionsLabel">
       <a class="btn btn-hero" href="#downloads" data-i18n="downloads.title">Downloads</a>
       <a class="btn btn-hero btn-secondary" href="#config" data-i18n="config.title">Server Configuration</a>
@@ -31,14 +33,15 @@ window.RUSTDESK_CONFIG = {
 
   <!-- Downloads -->
   <section class="section" id="downloads">
-    <h2 class="section-title" data-i18n="downloads.title">Downloads</h2>
-
     <div class="recommended-download" id="recommended-download" hidden>
       <p class="eyebrow" data-i18n="recommended.eyebrow">Recommended for this device</p>
       <h3 id="recommended-title">Choose a download</h3>
       <p id="recommended-description"></p>
       <a class="btn" id="recommended-link" href="#downloads">View options</a>
     </div>
+
+    <hr class="section-divider">
+    <h2 class="section-title" data-i18n="downloads.title">Downloads</h2>
 
     <div class="download-grid">
 
@@ -133,9 +136,13 @@ window.RUSTDESK_CONFIG = {
   <section class="section" id="config">
     <h2 class="section-title" data-i18n="config.title">Server Configuration</h2>
     <div class="config-section">
+      <div class="config-warning">
+        <i class="ti ti-alert-triangle config-warning-icon"></i>
+        <span data-i18n-html="config.note">The downloads on this page are <strong>pre-configured</strong>.<br>You only need this section if you are using the <strong>macOS</strong> upstream client or a regular RustDesk client.</span>
+      </div>
       <div class="config-grid">
         <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration" data-i18n-aria-label="config.qrAria">
-          <div id="qrcode"></div>
+          {% include qr-config.svg %}
           <p class="qr-label" data-i18n="config.qrLabel">Scan this QR code in the RustDesk mobile app</p>
         </div>
         <div>
@@ -147,7 +154,7 @@ window.RUSTDESK_CONFIG = {
         </div>
       </div>
 
-      <div class="instructions" style="margin-top: 24px;">
+      <div class="instructions mt-2">
         <h4><i class="ti ti-copy"></i> <span data-i18n="manual.quickImportTitle">Quick Import (recommended)</span></h4>
         <ol>
           <li data-i18n-html="manual.quickStep1">Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.</li>
@@ -156,7 +163,7 @@ window.RUSTDESK_CONFIG = {
         </ol>
       </div>
 
-      <div class="instructions" style="margin-top: 16px;">
+      <div class="instructions mt-1">
         <h4><i class="ti ti-keyboard"></i> <span data-i18n="manual.manualEntryTitle">Manual Entry</span></h4>
         <ol>
           <li data-i18n-html="manual.manualStep1">Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
@@ -172,8 +179,8 @@ window.RUSTDESK_CONFIG = {
         </ol>
       </div>
 
-      <div class="client-preview" style="margin-top: 24px; text-align: center;">
-        <img src="assets/img/rustdesk_client.png" alt="RustDesk Client" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      <div class="client-preview">
+        <img src="assets/img/rustdesk_client.png" alt="RustDesk Client">
       </div>
     </div>
   </section>
@@ -188,9 +195,10 @@ window.RUSTDESK_CONFIG = {
 
 <footer class="site-footer">
   <div class="container">
-    {% if site.data.release.tag != "" %}
-    <p><span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(prerelease)</span>{% endif %}</p>
+    <p>{% if site.data.release.tag != "" %}
+    <span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(prerelease)</span>{% endif %} |
     {% endif %}
-    <p><a href="https://greensec.de" target="_blank" data-i18n-html="footer.impress">Impress</a></p>
+    <a href="https://greensec.de" target="_blank" data-i18n-html="footer.impress">Impress</a>
+    </p>
   </div>
 </footer>

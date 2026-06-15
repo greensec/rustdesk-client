@@ -34,6 +34,7 @@ const I18N = {
     'config.title': 'Server Configuration',
     'config.qrAria': 'QR code for the RustDesk server configuration',
     'config.qrLabel': 'Scan this QR code in the RustDesk mobile app',
+    'config.note': 'The downloads on this page are <strong>pre-configured</strong>.<br>You only need this section if you are using the <strong>macOS</strong> upstream client or a regular RustDesk client.',
     'config.copyHelp': 'Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:',
     'config.textareaAria': 'Encoded RustDesk server configuration',
     'config.copyButton': 'Copy Config',
@@ -104,6 +105,7 @@ const I18N = {
     'config.title': 'Serverkonfiguration',
     'config.qrAria': 'QR-Code für die RustDesk-Serverkonfiguration',
     'config.qrLabel': 'Scanne diesen QR-Code in der mobilen RustDesk-App',
+    'config.note': 'Die Downloads auf dieser Seite sind bereits <strong>vorkonfiguriert</strong>.<br>Sie benötigen diesen Abschnitt nur, wenn Sie den <strong>macOS</strong>-Upstream-Client oder einen regulären RustDesk-Client verwenden.',
     'config.copyHelp': 'Kopieren Sie diese Konfigurationszeichenfolge und fügen Sie sie in RustDesk unter <strong>Settings → Network → Import Server Config</strong> ein:',
     'config.textareaAria': 'Kodierte RustDesk-Serverkonfiguration',
     'config.copyButton': 'Konfiguration kopieren',
@@ -161,28 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (lang) switchLanguage(lang);
     });
   });
-
-  const encoded = window.RUSTDESK_CONFIG?.encoded_string || '';
-  const qrContainer = document.getElementById('qrcode');
-
-  if (encoded && qrContainer && typeof QRCode !== 'undefined') {
-    qrContainer.innerHTML = '';
-    qrContainer.setAttribute('aria-label', t('config.qrAria', 'QR code for the RustDesk server configuration'));
-    new QRCode(qrContainer, {
-      text: encoded,
-      width: 200,
-      height: 200,
-      colorDark: '#1e293b',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } else if (qrContainer) {
-    const empty = document.createElement('p');
-    empty.className = 'qr-empty';
-    empty.textContent = t('config.noConfig', 'No config available.');
-    qrContainer.innerHTML = '';
-    qrContainer.appendChild(empty);
-  }
 
   enhanceDownloadLinks();
 
