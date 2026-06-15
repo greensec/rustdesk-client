@@ -185,8 +185,8 @@ body {
 
 /* Download Cards */
 .recommended-download {
-  background: var(--card-bg);
-  border: 1px solid var(--primary);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-darker) 100%);
+  border: 1px solid var(--primary-dark);
   border-radius: var(--radius);
   padding: clamp(18px, 5vw, 24px);
   box-shadow: var(--shadow);
@@ -195,6 +195,7 @@ body {
   width: 100%;
   min-width: 0;
   text-align: center;
+  color: white;
 }
 
 .recommended-download[hidden] {
@@ -203,7 +204,7 @@ body {
 
 .recommended-download .eyebrow {
   margin: 0 0 6px;
-  color: var(--primary-dark);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -220,7 +221,17 @@ body {
 .recommended-download p:last-of-type {
   margin: 0 auto 18px;
   max-width: 520px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.recommended-download .btn {
+  background: white;
+  color: var(--primary-dark);
+}
+
+.recommended-download .btn:hover {
+  background: var(--primary-soft);
+  color: var(--primary-darker);
 }
 
 .release-summary {
