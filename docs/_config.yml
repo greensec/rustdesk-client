@@ -1,12 +1,7 @@
-title: RustDesk Client Downloads
+title: RustDesk Clients
 description: Download customized RustDesk clients with pre-configured self-hosted server settings
 baseurl: "/rustdesk-client"
 url: "https://greensec.github.io"
-
-# Disable the default minima theme styling so our custom CSS takes full control
-theme: minima
-minima:
-  skin: classic
 
 plugins:
   - jekyll-feed

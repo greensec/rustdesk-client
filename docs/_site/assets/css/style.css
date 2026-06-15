@@ -1,8 +1,4 @@
----
----
-
 /* ===== Custom Modern Styles ===== */
-
 :root {
   --primary: #49ab47;
   --primary-dark: #2f7d32;
@@ -406,7 +402,6 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
 .qr-wrapper {
   text-align: center;
 }
@@ -592,53 +587,42 @@ button:focus-visible,
   .download-grid {
     grid-template-columns: 1fr;
   }
-
   .card-column {
     gap: 16px;
   }
 }
-
 @media (max-width: 640px) {
   .site-header {
     padding: 48px 0 36px;
   }
-
   .lang-selector {
     top: -36px;
     right: clamp(12px, 4vw, 16px);
   }
-
   .section {
     padding: 36px 0;
   }
-
   .hero-actions {
     flex-direction: column;
     align-items: stretch;
   }
-
   .hero-actions .btn,
   .recommended-download .btn,
   .btn-group .btn {
     width: 100%;
   }
-
   .release-summary {
     grid-template-columns: 1fr;
   }
-
   .download-grid {
     gap: 16px;
   }
-
   .card:hover {
     transform: none;
   }
-
   .config-grid {
     gap: 24px;
   }
-
   .toast {
     right: 16px;
     bottom: 16px;
@@ -646,24 +630,22 @@ button:focus-visible,
     text-align: center;
   }
 }
-
 @media (max-width: 380px) {
   .container {
     padding: 0 12px;
   }
-
   .site-header {
     padding: 40px 0 32px;
   }
-
   .btn {
     padding-right: 14px;
     padding-left: 14px;
   }
-
   .release-summary > div,
   .card,
   .config-section {
     border-radius: 10px;
   }
 }
+
+/*# sourceMappingURL=style.css.map */

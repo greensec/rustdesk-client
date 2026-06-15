@@ -20,6 +20,10 @@ window.RUSTDESK_CONFIG = {
       <button class="lang-btn" data-lang="de" aria-pressed="false">DE</button>
     </div>
     <h1>{{ site.data.config.client_name | default: site.title }}</h1>
+    <div class="hero-actions" aria-label="Primary actions" data-i18n-aria-label="hero.actionsLabel">
+      <a class="btn btn-hero" href="#downloads" data-i18n="downloads.title">Downloads</a>
+      <a class="btn btn-hero btn-secondary" href="#config" data-i18n="config.title">Server Configuration</a>
+    </div>
   </div>
 </header>
 
@@ -167,6 +171,10 @@ window.RUSTDESK_CONFIG = {
           <li data-i18n-html="manual.manualStepApply">Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
       </div>
+
+      <div class="client-preview" style="margin-top: 24px; text-align: center;">
+        <img src="assets/img/rustdesk_client.png" alt="RustDesk Client" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      </div>
     </div>
   </section>
 
@@ -180,9 +188,9 @@ window.RUSTDESK_CONFIG = {
 
 <footer class="site-footer">
   <div class="container">
-    <p data-i18n-html="footer.builtFrom">Built from <a href="https://github.com/rustdesk/rustdesk" target="_blank" rel="noopener">RustDesk</a> · Custom client builder</p>
     {% if site.data.release.tag != "" %}
     <p><span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(prerelease)</span>{% endif %}</p>
     {% endif %}
+    <p><a href="https://greensec.de" target="_blank" data-i18n-html="footer.impress">Impress</a></p>
   </div>
 </footer>
