@@ -754,7 +754,7 @@ jobs:
           cd rustdesk
 
           Push-Location res\msi
-          python preprocess.py --arp -d ..\..\rustdesk
+          python preprocess.py --arp -d ..\..\rustdesk --app-name "${{ vars.CLIENT_NAME }}"
           nuget restore msi.sln
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
           Pop-Location
