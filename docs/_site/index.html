@@ -20,7 +20,7 @@ window.RUSTDESK_CONFIG = {
   encoded_string: "==Qfi0TWRNjQxEzc2cnMrJlZ0RGOW9mV4VXaiNTQCFHcyFVTll1NQdXeBNVUyRUbiojI5V2aiwiIiojIpBXYiwiIlRmLjV2cuVWZydmLrNXZkR3c1JnI6ISehxWZyJCLiUGZuMWZz5WZlJ3Zus2clRGdzVnciojI0N3boJye",
   id_server: "rustdesk.greensec.de",
   relay_server: "rustdesk.greensec.de",
-  api_server: "",
+  api_server: "https://rustdesk.greensec.de",
   key: "mDrQSAywP7YeMQrpqBA3biuxVoV8dtfRk2w6s11B3QY="
 };
 </script>
@@ -184,18 +184,40 @@ window.RUSTDESK_CONFIG = {
         <h4><i class="ti ti-keyboard"></i> <span data-i18n="manual.manualEntryTitle">Manual Entry</span></h4>
         <ol>
           <li data-i18n-html="manual.manualStep1">Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
-          <li><strong data-i18n="config.idServer">ID Server</strong>: <code>rustdesk.greensec.de</code></li>
+          <li class="config-item"><strong data-i18n="config.idServer">ID Server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="rustdesk.greensec.de" readonly="" /><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy ID Server"><i class="ti ti-copy"></i></button></span>
+          </li>
           
-          <li><strong data-i18n="config.relayServer">Relay Server</strong>: <code>rustdesk.greensec.de</code></li>
+          <li class="config-item"><strong data-i18n="config.relayServer">Relay Server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="rustdesk.greensec.de" readonly="" /><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy Relay Server"><i class="ti ti-copy"></i></button></span>
+          </li>
           
           
-          <li><strong data-i18n="config.key">Key</strong>: <code>mDrQSAywP7YeMQrpqBA3biuxVoV8dtfRk2w6s11B3QY=</code></li>
+          <li class="config-item"><strong data-i18n="config.apiServer">API Server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="https://rustdesk.greensec.de" readonly="" /><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy API Server"><i class="ti ti-copy"></i></button></span>
+          </li>
+          
+          <li class="config-item"><strong data-i18n="config.key">Key</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="mDrQSAywP7YeMQrpqBA3biuxVoV8dtfRk2w6s11B3QY=" readonly="" /><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy Key"><i class="ti ti-copy"></i></button></span>
+          </li>
           <li data-i18n-html="manual.manualStepApply">Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
       </div>
 
       <div class="client-preview">
         <img src="assets/img/rustdesk_client.png" alt="RustDesk Client" />
+        
+        <span class="overlay overlay-id-server">rustdesk.greensec.de</span>
+        
+        
+        <span class="overlay overlay-relay-server">rustdesk.greensec.de</span>
+        
+        
+        <span class="overlay overlay-api-server">https://rustdesk.greensec.de</span>
+        
+        
+        <span class="overlay overlay-key">mDrQSAywP7YeMQrpqBA3biuxVoV8dtfRk2w6s11B3QY=</span>
+        
       </div>
     </div>
   </section>

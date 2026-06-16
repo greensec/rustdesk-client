@@ -445,14 +445,50 @@ body {
 }
 
 .client-preview {
-  margin-top: 24px;
-  text-align: center;
+  position: relative;
+  display: block;
+  max-width: 785px;
+  margin: 24px auto 0;
 }
 
 .client-preview img {
-  max-width: 100%;
+  width: 100%;
+  height: auto;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.client-preview .overlay {
+  position: absolute;
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1;
+  font-size: clamp(7px, 1.1vw, 12px);
+}
+
+.overlay-id-server {
+  top: 243px;
+  left: 285px;
+}
+
+.overlay-relay-server {
+  top: 285px;
+  left: 285px;
+}
+
+.overlay-api-server {
+  top: 328px;
+  left: 285px;
+}
+
+.overlay-key {
+  top: 370px;
+  left: 285px;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mt-1 {
@@ -617,6 +653,58 @@ button:focus-visible,
 
 .instructions li {
   margin-bottom: 6px;
+}
+
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.config-field {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.config-value {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+  font-size: 0.875rem;
+  padding: 6px 10px;
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: text;
+  outline: none;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-copy:hover {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
 }
 
 /* Footer */

@@ -167,20 +167,40 @@ window.RUSTDESK_CONFIG = {
         <h4><i class="ti ti-keyboard"></i> <span data-i18n="manual.manualEntryTitle">Manual Entry</span></h4>
         <ol>
           <li data-i18n-html="manual.manualStep1">Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
-          <li><strong data-i18n="config.idServer">ID Server</strong>: <code>{{ site.data.config.id_server | default: "—" }}</code></li>
+          <li class="config-item"><strong data-i18n="config.idServer">ID Server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.id_server | default: '—' }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy ID Server"><i class="ti ti-copy"></i></button></span>
+          </li>
           {% if site.data.config.relay_server != "" %}
-          <li><strong data-i18n="config.relayServer">Relay Server</strong>: <code>{{ site.data.config.relay_server }}</code></li>
+          <li class="config-item"><strong data-i18n="config.relayServer">Relay Server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.relay_server }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy Relay Server"><i class="ti ti-copy"></i></button></span>
+          </li>
           {% endif %}
           {% if site.data.config.api_server != "" %}
-          <li><strong data-i18n="config.apiServer">API Server</strong>: <code>{{ site.data.config.api_server }}</code></li>
+          <li class="config-item"><strong data-i18n="config.apiServer">API Server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.api_server }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy API Server"><i class="ti ti-copy"></i></button></span>
+          </li>
           {% endif %}
-          <li><strong data-i18n="config.key">Key</strong>: <code>{{ site.data.config.key | default: "—" }}</code></li>
+          <li class="config-item"><strong data-i18n="config.key">Key</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.key | default: '—' }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy Key"><i class="ti ti-copy"></i></button></span>
+          </li>
           <li data-i18n-html="manual.manualStepApply">Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
       </div>
 
       <div class="client-preview">
         <img src="assets/img/rustdesk_client.png" alt="RustDesk Client">
+        {% if site.data.config.id_server != "" %}
+        <span class="overlay overlay-id-server">{{ site.data.config.id_server }}</span>
+        {% endif %}
+        {% if site.data.config.relay_server != "" %}
+        <span class="overlay overlay-relay-server">{{ site.data.config.relay_server }}</span>
+        {% endif %}
+        {% if site.data.config.api_server != "" %}
+        <span class="overlay overlay-api-server">{{ site.data.config.api_server }}</span>
+        {% endif %}
+        {% if site.data.config.key != "" %}
+        <span class="overlay overlay-key">{{ site.data.config.key }}</span>
+        {% endif %}
       </div>
     </div>
   </section>

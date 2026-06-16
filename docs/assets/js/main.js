@@ -29,7 +29,7 @@ const I18N = {
     'manual.quickStep2': 'Select <strong>Network</strong> and unlock the settings with elevated privileges.',
     'manual.quickStep3': 'Click on <strong>ID/Relay-Server</strong> and then <i class="ti ti-clipboard"></i> (<strong>Import Server Config</strong>) and paste the config string from the <a href="#config">Server Configuration</a> section.',
     'manual.manualEntryTitle': 'Manual Entry',
-    'manual.manualStep1': 'Open RustDesk → <strong>Network</strong> settings (unlocked).',
+    'manual.manualStep1': 'Open RustDesk → <strong>ID/Relay-Server</strong> settings (see Quick Import).',
     'manual.manualStepApply': 'Click <strong>Apply</strong> or <strong>OK</strong> to save.',
     'config.title': 'Server Configuration',
     'config.qrAria': 'QR code for the RustDesk server configuration',
@@ -100,8 +100,8 @@ const I18N = {
     'manual.quickStep2': 'Wählen Sie <strong>Netzwerk</strong> und entsperren Sie die Einstellungen mit erhöhten Rechten.',
     'manual.quickStep3': 'Klicken Sie auf <strong>ID/Relay-Server</strong> und dann auf <i class="ti ti-clipboard"></i> (<strong>Serverkonfiguration importieren</strong>) und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Serverkonfiguration</a> ein.',
     'manual.manualEntryTitle': 'Manuelle Eingabe',
-    'manual.manualStep1': 'Öffnen Sie in RustDesk die <strong>Network</strong>-Einstellungen (entsperrt).',
-    'manual.manualStepApply': 'Klicken Sie zum Speichern auf <strong>Apply</strong> oder <strong>OK</strong>.',
+    'manual.manualStep1': 'Öffnen Sie in RustDesk die <strong>ID/Relay-Server</strong>-Einstellungen (Siehe Schnellimport).',
+    'manual.manualStepApply': 'Klicken Sie zum Speichern auf <strong>OK</strong>.',
     'config.title': 'Serverkonfiguration',
     'config.qrAria': 'QR-Code für die RustDesk-Serverkonfiguration',
     'config.qrLabel': 'Scanne diesen QR-Code in der mobilen RustDesk-App',
@@ -165,6 +165,29 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   enhanceDownloadLinks();
+
+  // Auto-select text in read-only config inputs on focus/click
+  document.querySelectorAll('.config-value').forEach(function (input) {
+    input.addEventListener('focus', function () {
+      input.select();
+    });
+    input.addEventListener('click', function () {
+      input.select();
+    });
+  });
+
+  // Inline copy buttons (copy previous sibling input value)
+  document.querySelectorAll('[data-copy-prev]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const input = btn.previousElementSibling;
+      if (!input || !input.value) return;
+      copyText(input.value).then(function () {
+        showToast(t('toast.copied', 'Copied to clipboard!'));
+      }).catch(function () {
+        showToast(t('toast.copyFailed', 'Copy failed. Select the text and copy it manually.'));
+      });
+    });
+  });
 
   // Copy buttons
   document.querySelectorAll('[data-copy]').forEach(function (btn) {

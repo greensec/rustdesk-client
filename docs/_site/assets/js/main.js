@@ -29,13 +29,13 @@ const I18N = {
     'manual.quickStep2': 'Select <strong>Network</strong> and unlock the settings with elevated privileges.',
     'manual.quickStep3': 'Click on <strong>ID/Relay-Server</strong> and then <i class="ti ti-clipboard"></i> (<strong>Import Server Config</strong>) and paste the config string from the <a href="#config">Server Configuration</a> section.',
     'manual.manualEntryTitle': 'Manual Entry',
-    'manual.manualStep1': 'Open RustDesk → <strong>Network</strong> settings (unlocked).',
+    'manual.manualStep1': 'Open RustDesk → <strong>ID/Relay-Server</strong> settings (see Quick Import).',
     'manual.manualStepApply': 'Click <strong>Apply</strong> or <strong>OK</strong> to save.',
     'config.title': 'Server Configuration',
     'config.qrAria': 'QR code for the RustDesk server configuration',
     'config.qrLabel': 'Scan this QR code in the RustDesk mobile app',
     'config.note': 'The downloads on this page are <strong>pre-configured</strong>.<br>You only need this section if you are using the <strong>macOS</strong> upstream client or a regular RustDesk client.',
-    'config.copyHelp': 'Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:',
+    'config.copyHelp': 'Copy this config string and paste it into RustDesk via <strong>Settings → Network → ID/Relay-Server → <i class="ti ti-clipboard"></i> (Import Server Config)</strong>:',
     'config.textareaAria': 'Encoded RustDesk server configuration',
     'config.copyButton': 'Copy Config',
     'config.idServer': 'ID Server',
@@ -93,20 +93,20 @@ const I18N = {
     'noBuild.windows': 'Noch keine Windows-Builds verfügbar.',
     'noBuild.macos': 'Noch keine macOS-Builds verfügbar.',
     'noBuild.android': 'Noch keine Android-Builds verfügbar.',
-    'macos.noteText': 'Dies sind offizielle Upstream-Builds. Sie enthalten nicht die Konfiguration Ihres selbst gehosteten Servers.',
-    'macos.noteLink': 'Manuelle Einrichtung ansehen.',
+    'macos.noteText': 'Dies sind offizielle Upstream-Builds. Die automatische Konfiguration ist dort nicht enthalten. Siehe ',
+    'macos.noteLink': 'manuelle Einrichtung',
     'manual.quickImportTitle': 'Schnellimport (empfohlen)',
     'manual.quickStep1': 'Öffnen Sie RustDesk und klicken Sie auf die <strong>Menüschaltfläche</strong> (⋯) neben Ihrer ID.',
     'manual.quickStep2': 'Wählen Sie <strong>Netzwerk</strong> und entsperren Sie die Einstellungen mit erhöhten Rechten.',
     'manual.quickStep3': 'Klicken Sie auf <strong>ID/Relay-Server</strong> und dann auf <i class="ti ti-clipboard"></i> (<strong>Serverkonfiguration importieren</strong>) und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Serverkonfiguration</a> ein.',
     'manual.manualEntryTitle': 'Manuelle Eingabe',
-    'manual.manualStep1': 'Öffnen Sie in RustDesk die <strong>Network</strong>-Einstellungen (entsperrt).',
-    'manual.manualStepApply': 'Klicken Sie zum Speichern auf <strong>Apply</strong> oder <strong>OK</strong>.',
+    'manual.manualStep1': 'Öffnen Sie in RustDesk die <strong>ID/Relay-Server</strong>-Einstellungen (Siehe Schnellimport).',
+    'manual.manualStepApply': 'Klicken Sie zum Speichern auf <strong>OK</strong>.',
     'config.title': 'Serverkonfiguration',
     'config.qrAria': 'QR-Code für die RustDesk-Serverkonfiguration',
     'config.qrLabel': 'Scanne diesen QR-Code in der mobilen RustDesk-App',
     'config.note': 'Die Downloads auf dieser Seite sind bereits <strong>vorkonfiguriert</strong>.<br>Sie benötigen diesen Abschnitt nur, wenn Sie den <strong>macOS</strong>-Upstream-Client oder einen regulären RustDesk-Client verwenden.',
-    'config.copyHelp': 'Kopieren Sie diese Konfigurationszeichenfolge und fügen Sie sie in RustDesk unter <strong>Settings → Network → Import Server Config</strong> ein:',
+    'config.copyHelp': 'Kopieren Sie diese Konfigurationszeichenfolge und fügen Sie sie in RustDesk unter <strong>Einstellungen → Netzwerk → ID/Relay-Server → <i class="ti ti-clipboard"></i> (Serverkonfiguration importieren)</strong> ein:',
     'config.textareaAria': 'Kodierte RustDesk-Serverkonfiguration',
     'config.copyButton': 'Konfiguration kopieren',
     'config.idServer': 'ID-Server',
@@ -165,6 +165,29 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   enhanceDownloadLinks();
+
+  // Auto-select text in read-only config inputs on focus/click
+  document.querySelectorAll('.config-value').forEach(function (input) {
+    input.addEventListener('focus', function () {
+      input.select();
+    });
+    input.addEventListener('click', function () {
+      input.select();
+    });
+  });
+
+  // Inline copy buttons (copy previous sibling input value)
+  document.querySelectorAll('[data-copy-prev]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const input = btn.previousElementSibling;
+      if (!input || !input.value) return;
+      copyText(input.value).then(function () {
+        showToast(t('toast.copied', 'Copied to clipboard!'));
+      }).catch(function () {
+        showToast(t('toast.copyFailed', 'Copy failed. Select the text and copy it manually.'));
+      });
+    });
+  });
 
   // Copy buttons
   document.querySelectorAll('[data-copy]').forEach(function (btn) {
