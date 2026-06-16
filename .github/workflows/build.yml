@@ -1543,8 +1543,7 @@ jobs:
       - name: Create or update GitHub Release
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
           RELEASE_TAG: ${{ steps.stage_release_assets.outputs.tag }}
           RELEASE_TITLE: ${{ steps.stage_release_assets.outputs.title }}
           RELEASE_PRERELEASE: ${{ steps.stage_release_assets.outputs.prerelease }}
@@ -1558,10 +1557,11 @@ jobs:
             prerelease_args+=(--prerelease)
           fi
 
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
           else
             gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
               --title "$RELEASE_TITLE" \
               --notes-file release-notes.md \
