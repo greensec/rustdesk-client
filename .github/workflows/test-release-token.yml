@@ -10,6 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Verify token can read releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
