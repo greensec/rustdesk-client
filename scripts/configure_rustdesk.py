@@ -308,6 +308,41 @@ def apply_branding(
     print("Branding injection finished")
 
 
+def apply_links(source_dir: pathlib.Path, website_url: str, privacy_url: str) -> None:
+    if not website_url and not privacy_url:
+        print("No link overrides provided; link patching skipped")
+        return
+
+    files = [
+        source_dir / "flutter" / "lib" / "desktop" / "pages" / "desktop_setting_page.dart",
+        source_dir / "flutter" / "lib" / "mobile" / "pages" / "settings_page.dart",
+        source_dir / "flutter" / "lib" / "desktop" / "pages" / "install_page.dart",
+        source_dir / "flutter" / "lib" / "common.dart",
+    ]
+
+    for path in files:
+        if not path.exists():
+            print(f"Skipped link patching; file not found: {path}")
+            continue
+
+        text = read_text(path)
+        original = text
+
+        if privacy_url:
+            text = text.replace("https://rustdesk.com/privacy.html", privacy_url)
+
+        if website_url:
+            text = text.replace("https://rustdesk.com", website_url)
+
+        if text != original:
+            write_text(path, text)
+            print(f"Updated links in {path.relative_to(source_dir)}")
+        else:
+            print(f"No link matches in {path.relative_to(source_dir)}")
+
+    print("Link patching finished")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Inject self-hosted RustDesk server config and optional branding."
@@ -325,6 +360,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--description", default="")
     parser.add_argument("--company", default="")
     parser.add_argument("--asset-dir", default="")
+    parser.add_argument("--website-url", default="")
+    parser.add_argument("--privacy-url", default="")
 
     return parser.parse_args()
 
@@ -348,6 +385,8 @@ def main() -> int:
     description = args.description.strip()
     company = args.company.strip()
     asset_dir = args.asset_dir.strip()
+    website_url = args.website_url.strip()
+    privacy_url = args.privacy_url.strip()
 
     try:
         apply_server_config(
@@ -365,6 +404,12 @@ def main() -> int:
             description=description,
             company=company,
             asset_dir=asset_dir,
+        )
+
+        apply_links(
+            source_dir=source_dir,
+            website_url=website_url,
+            privacy_url=privacy_url,
         )
 
     except Exception as exc:

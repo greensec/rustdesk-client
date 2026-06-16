@@ -181,6 +181,7 @@ def generate_config_yml() -> None:
         f.write(f"encoded_string: {yaml_string(encoded)}\n")
         for k, v in cfg.items():
             f.write(f"{k}: {yaml_string(v)}\n")
+        f.write(f"imprint_url: {yaml_string(os.environ.get('IMPRINT_URL', ''))}\n")
 
     # Generate static SVG QR code for server-side rendering
     try:

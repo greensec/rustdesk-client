@@ -40,6 +40,45 @@ This repository automates the build and packaging of a customized [RustDesk](htt
 3. **Add branding assets** to a `branding/` directory (optional).
 4. **Run the workflow** manually via GitHub Actions (`Build RustDesk`).
 
+## Branding
+
+Branding is injected into the upstream RustDesk source before building. You can customize both text metadata and visual assets.
+
+### Text Branding
+
+Set these as **repository variables** (`Settings → Secrets and variables → Variables`):
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `CLIENT_NAME` | Application name shown in the UI, window title, and package metadata | `MyRemote` |
+| `CLIENT_IDENTIFIER` | Bundle identifier / application ID (reverse-DNS) | `de.company.myremote` |
+| `CLIENT_DESCRIPTION` | Short description used in `.desktop` files and Windows metadata | `Secure remote desktop` |
+| `CLIENT_COMPANY` | Company name used in copyright strings | `Company GmbH` |
+
+### Asset Branding
+
+Place image assets in a `branding/` directory at the root of this repository. The build workflow automatically copies them into the RustDesk source tree.
+
+**Expected filenames and their targets:**
+
+| File in `branding/` | Replaces upstream asset | Used for |
+|---------------------|------------------------|----------|
+| `icon.ico` | `res/icon.ico` | Windows application icon |
+| `tray-icon.ico` | `res/tray-icon.ico` | Windows tray icon |
+| `icon.png` | `res/icon.png` | Linux application icon |
+| `32x32.png` | `res/32x32.png` | Small icon (32×32 px) |
+| `64x64.png` | `res/64x64.png` | Medium icon (64×64 px) |
+| `128x128.png` | `res/128x128.png` | Large icon (128×128 px) |
+| `128x128@2x.png` | `res/128x128@2x.png` | Retina icon (256×256 px) |
+| `logo.svg` | `res/logo.svg` | Application logo (SVG) |
+| `logo-header.svg` | `res/logo-header.svg` | Header/logo in UI |
+| `rustdesk-banner.svg` | `res/rustdesk-banner.svg` | Banner image |
+| `mac-icon.png` | `res/mac-icon.png` | macOS application icon |
+| `mac-tray-dark-x2.png` | `res/mac-tray-dark-x2.png` | macOS dark-mode tray icon (@2x) |
+| `mac-tray-light-x2.png` | `res/mac-tray-light-x2.png` | macOS light-mode tray icon (@2x) |
+
+Only include the files you want to override; missing ones will keep the upstream defaults.
+
 ## Workflow Inputs
 
 | Input | Description | Default |

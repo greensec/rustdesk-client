@@ -38,6 +38,7 @@ jobs:
           API_SERVER: ${{ secrets.API_SERVER }}
           RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
           CLIENT_NAME: ${{ vars.CLIENT_NAME }}
+          IMPRINT_URL: ${{ vars.IMPRINT_URL }}
         run: python3 scripts/generate_docs_data.py
       - name: Setup Pages
         uses: actions/configure-pages@v5

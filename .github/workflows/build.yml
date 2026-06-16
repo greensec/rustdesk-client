@@ -51,6 +51,14 @@ on:
         required: true
         type: boolean
         default: true
+      website_url:
+        description: "Website URL shown in About dialog"
+        required: false
+        default: ""
+      privacy_url:
+        description: "Privacy policy URL shown in About dialog"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -280,6 +288,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: linux
 
       - name: Verify injection
@@ -446,6 +456,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: linux
 
       - name: Download Linux packages
@@ -516,6 +528,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: linux
 
       - name: Download Linux packages
@@ -612,6 +626,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: windows
 
       - name: Verify injection
@@ -822,6 +838,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: macos
 
       - name: Verify injection
@@ -958,6 +976,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: macos
 
       - name: Verify injection
@@ -1096,6 +1116,8 @@ jobs:
           description: ${{ vars.CLIENT_DESCRIPTION }}
           company: ${{ vars.CLIENT_COMPANY }}
           asset_dir: branding
+          website_url: ${{ inputs.website_url || vars.WEBSITE_URL || 'https://rustdesk.com' }}
+          privacy_url: ${{ inputs.privacy_url || vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
           target: android
 
       - name: Verify injection

@@ -39,6 +39,14 @@ inputs:
     description: Branding asset directory
     required: false
     default: ""
+  website_url:
+    description: Website URL shown in About dialog
+    required: false
+    default: ""
+  privacy_url:
+    description: Privacy policy URL shown in About dialog
+    required: false
+    default: ""
   target:
     description: Target platform (linux, windows, macos, android)
     required: true
@@ -79,6 +87,8 @@ runs:
         CLIENT_IDENTIFIER: ${{ inputs.app_id }}
         CLIENT_DESCRIPTION: ${{ inputs.description }}
         CLIENT_COMPANY: ${{ inputs.company }}
+        WEBSITE_URL: ${{ inputs.website_url }}
+        PRIVACY_URL: ${{ inputs.privacy_url }}
       run: |
         set -euo pipefail
 
@@ -94,6 +104,8 @@ runs:
         [ -n "$CLIENT_DESCRIPTION" ] && args+=(--description "$CLIENT_DESCRIPTION")
         [ -n "$CLIENT_COMPANY" ] && args+=(--company "$CLIENT_COMPANY")
         [ -n "${{ inputs.asset_dir }}" ] && args+=(--asset-dir "${{ inputs.asset_dir }}")
+        [ -n "$WEBSITE_URL" ] && args+=(--website-url "$WEBSITE_URL")
+        [ -n "$PRIVACY_URL" ] && args+=(--privacy-url "$PRIVACY_URL")
 
         python3 scripts/configure_rustdesk.py "${args[@]}"
 
@@ -109,6 +121,8 @@ runs:
         CLIENT_IDENTIFIER: ${{ inputs.app_id }}
         CLIENT_DESCRIPTION: ${{ inputs.description }}
         CLIENT_COMPANY: ${{ inputs.company }}
+        WEBSITE_URL: ${{ inputs.website_url }}
+        PRIVACY_URL: ${{ inputs.privacy_url }}
       run: |
         $args = @(
           "--source-dir", "rustdesk",
@@ -122,5 +136,7 @@ runs:
         if ($env:CLIENT_DESCRIPTION -ne "") { $args += @("--description", "$env:CLIENT_DESCRIPTION") }
         if ($env:CLIENT_COMPANY -ne "") { $args += @("--company", "$env:CLIENT_COMPANY") }
         if ("${{ inputs.asset_dir }}" -ne "") { $args += @("--asset-dir", "${{ inputs.asset_dir }}") }
+        if ($env:WEBSITE_URL -ne "") { $args += @("--website-url", "$env:WEBSITE_URL") }
+        if ($env:PRIVACY_URL -ne "") { $args += @("--privacy-url", "$env:PRIVACY_URL") }
 
         python scripts/configure_rustdesk.py @args

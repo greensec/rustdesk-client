@@ -218,7 +218,7 @@ window.RUSTDESK_CONFIG = {
     <p>{% if site.data.release.tag != "" %}
     <span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(prerelease)</span>{% endif %} |
     {% endif %}
-    <a href="https://greensec.de" target="_blank" data-i18n-html="footer.impress">Impress</a>
+    {% if site.data.config.imprint_url != "" %}<a href="{{ site.data.config.imprint_url }}" target="_blank" data-i18n-html="footer.impress">Impress</a>{% endif %}
     </p>
   </div>
 </footer>
