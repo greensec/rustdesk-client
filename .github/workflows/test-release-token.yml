@@ -1,0 +1,33 @@
+name: Test Release Token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify token can read releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "Testing gh release list..."
+          gh release list --limit 1 || echo "No releases found or read failed"
+
+      - name: Verify token can create/update releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag="test-token-$(date +%s)"
+          echo "Creating test release with tag: $tag"
+          gh release create "$tag" --title "Token test" --notes "Testing GITHUB_TOKEN permissions" --prerelease
+          echo "Release created successfully"
+          echo "Deleting test release..."
+          gh release delete "$tag" --yes
+          echo "Release deleted successfully"
+          echo "Token has write access to releases"
