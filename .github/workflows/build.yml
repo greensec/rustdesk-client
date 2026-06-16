@@ -1540,25 +1540,6 @@ jobs:
           echo "Release assets staged:"
           find release-assets -maxdepth 1 -type f -printf '%f\n' | sort
 
-      - name: Debug token permissions
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          echo "=== gh auth status ==="
-          gh auth status || true
-          echo ""
-          echo "=== Token permissions on this repo ==="
-          curl -sS -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}" | jq -r '.permissions // "N/A"' || true
-          echo ""
-          echo "=== Current GitHub context ==="
-          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
-          echo "GITHUB_SHA: $GITHUB_SHA"
-          echo "GITHUB_REF: $GITHUB_REF"
-
       - name: Create or update GitHub Release
         shell: bash
         env:
