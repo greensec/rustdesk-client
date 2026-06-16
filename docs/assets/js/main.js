@@ -176,6 +176,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Auto-select all text in the config-string textarea on focus/click
+  const configString = document.getElementById('config-string');
+  if (configString) {
+    configString.addEventListener('focus', function () {
+      configString.select();
+    });
+    configString.addEventListener('click', function () {
+      configString.select();
+    });
+  }
+
   // Inline copy buttons (copy previous sibling input value)
   document.querySelectorAll('[data-copy-prev]').forEach(function (btn) {
     btn.addEventListener('click', function () {
