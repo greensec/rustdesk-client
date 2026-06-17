@@ -10,6 +10,19 @@ on:
   release:
     types: [published, edited]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to highlight'
+        required: false
+        default: ''
+      release_title:
+        description: 'Release title'
+        required: false
+        default: ''
+      release_prerelease:
+        description: 'Is prerelease'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -30,9 +43,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
-          RELEASE_TITLE: ${{ github.event_name == 'release' && github.event.release.name || '' }}
-          RELEASE_PRERELEASE: ${{ github.event_name == 'release' && github.event.release.prerelease || '' }}
+          RELEASE_TAG: ${{ inputs.release_tag || (github.event_name == 'release' && github.event.release.tag_name || '') }}
+          RELEASE_TITLE: ${{ inputs.release_title || (github.event_name == 'release' && github.event.release.name || '') }}
+          RELEASE_PRERELEASE: ${{ inputs.release_prerelease || (github.event_name == 'release' && github.event.release.prerelease || '') }}
           RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
           RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
           API_SERVER: ${{ secrets.API_SERVER }}
