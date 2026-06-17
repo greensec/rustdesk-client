@@ -47,6 +47,10 @@ inputs:
     description: Privacy policy URL shown in About dialog
     required: false
     default: ""
+  client_config:
+    description: JSON object of extra RustDesk client settings (injected into DEFAULT_SETTINGS)
+    required: false
+    default: ""
   target:
     description: Target platform (linux, windows, macos, android)
     required: true
@@ -89,6 +93,7 @@ runs:
         CLIENT_COMPANY: ${{ inputs.company }}
         WEBSITE_URL: ${{ inputs.website_url }}
         PRIVACY_URL: ${{ inputs.privacy_url }}
+        CLIENT_CONFIG: ${{ inputs.client_config }}
       run: |
         set -euo pipefail
 
@@ -106,6 +111,7 @@ runs:
         [ -n "${{ inputs.asset_dir }}" ] && args+=(--asset-dir "${{ inputs.asset_dir }}")
         [ -n "$WEBSITE_URL" ] && args+=(--website-url "$WEBSITE_URL")
         [ -n "$PRIVACY_URL" ] && args+=(--privacy-url "$PRIVACY_URL")
+        [ -n "$CLIENT_CONFIG" ] && args+=(--client-config "$CLIENT_CONFIG")
 
         python3 scripts/configure_rustdesk.py "${args[@]}"
 
@@ -123,6 +129,7 @@ runs:
         CLIENT_COMPANY: ${{ inputs.company }}
         WEBSITE_URL: ${{ inputs.website_url }}
         PRIVACY_URL: ${{ inputs.privacy_url }}
+        CLIENT_CONFIG: ${{ inputs.client_config }}
       run: |
         $args = @(
           "--source-dir", "rustdesk",
@@ -138,5 +145,6 @@ runs:
         if ("${{ inputs.asset_dir }}" -ne "") { $args += @("--asset-dir", "${{ inputs.asset_dir }}") }
         if ($env:WEBSITE_URL -ne "") { $args += @("--website-url", "$env:WEBSITE_URL") }
         if ($env:PRIVACY_URL -ne "") { $args += @("--privacy-url", "$env:PRIVACY_URL") }
+        if ($env:CLIENT_CONFIG -ne "") { $args += @("--client-config", "$env:CLIENT_CONFIG") }
 
         python scripts/configure_rustdesk.py @args

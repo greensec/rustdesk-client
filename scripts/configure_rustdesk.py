@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import shutil
@@ -134,6 +135,7 @@ def inject_default_settings(
     key: str,
     relay: str,
     api: str,
+    client_config: str,
 ) -> None:
     entries: list[tuple[str, str]] = [
         ("custom-rendezvous-server", host),
@@ -145,6 +147,17 @@ def inject_default_settings(
 
     if api:
         entries.append(("api-server", api))
+
+    if client_config:
+        try:
+            extra = json.loads(client_config)
+            if isinstance(extra, dict):
+                for k, v in extra.items():
+                    entries.append((str(k), str(v)))
+            else:
+                print("Warning: CLIENT_CONFIG is not a JSON object; ignoring", file=sys.stderr)
+        except json.JSONDecodeError as exc:
+            print(f"Warning: failed to parse CLIENT_CONFIG: {exc}; ignoring", file=sys.stderr)
 
     rust_entries = ", ".join(
         f'("{rust_string(k)}".to_owned(), "{rust_string(v)}".to_owned())'
@@ -170,6 +183,7 @@ def apply_server_config(
     key: str,
     relay: str,
     api: str,
+    client_config: str,
 ) -> None:
     config_file = source_dir / "libs" / "hbb_common" / "src" / "config.rs"
 
@@ -202,6 +216,7 @@ def apply_server_config(
         key=key,
         relay=relay,
         api=api,
+        client_config=client_config,
     )
 
     print("Self-hosted server configuration injected")
@@ -403,6 +418,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--asset-dir", default="")
     parser.add_argument("--website-url", default="")
     parser.add_argument("--privacy-url", default="")
+    parser.add_argument("--client-config", default="")
 
     return parser.parse_args()
 
@@ -428,6 +444,7 @@ def main() -> int:
     asset_dir = args.asset_dir.strip()
     website_url = args.website_url.strip()
     privacy_url = args.privacy_url.strip()
+    client_config = args.client_config.strip()
 
     try:
         apply_server_config(
@@ -436,6 +453,7 @@ def main() -> int:
             key=key,
             relay=relay,
             api=api,
+            client_config=client_config,
         )
 
         apply_branding(

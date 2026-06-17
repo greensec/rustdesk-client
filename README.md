@@ -62,6 +62,38 @@ Set these as **repository variables** (`Settings → Secrets and variables → V
 | `CLIENT_COMPANY` | Company name used in copyright strings | `greenSec GmbH` |
 | `WEBSITE_URL` | Website URL shown in the About dialog | `https://greensec.de` |
 | `PRIVACY_URL` | Privacy policy URL shown in the About dialog | `https://greensec.de/datenschutz` |
+| `CLIENT_CONFIG` | JSON object of extra RustDesk client settings (see below) | `{"access-mode":"full","enable-record-session":"Y"}` |
+
+### Advanced Client Settings (`CLIENT_CONFIG`)
+
+The `CLIENT_CONFIG` variable lets you inject any RustDesk client configuration option as default settings. These are baked into the client at build time and act as factory defaults that users can still override in the UI.
+
+Set `CLIENT_CONFIG` as a **repository variable** containing a single-line JSON object:
+
+```json
+{"access-mode":"custom","enable-clipboard":"N","enable-file-transfer":"N"}
+```
+
+**Common settings you may want to pre-configure:**
+
+| Setting | Values | Description |
+|---------|--------|-------------|
+| `access-mode` | `custom`, `full`, `view` | Default permission level for incoming connections |
+| `enable-keyboard` | `Y` / `N` | Allow remote keyboard/mouse input |
+| `enable-clipboard` | `Y` / `N` | Allow clipboard sharing |
+| `enable-file-transfer` | `Y` / `N` | Allow file transfer |
+| `enable-camera` | `Y` / `N` | Allow camera access |
+| `enable-terminal` | `Y` / `N` | Allow terminal access |
+| `enable-audio` | `Y` / `N` | Allow audio forwarding |
+| `enable-tunnel` | `Y` / `N` | Allow TCP tunneling |
+| `enable-remote-restart` | `Y` / `N` | Allow remote restart |
+| `enable-record-session` | `Y` / `N` | Allow session recording |
+| `enable-block-input` | `Y` / `N` | Allow blocking local input (Windows) |
+| `enable-privacy-mode` | `Y` / `N` | Allow privacy mode |
+| `stop-service` | `Y` / `N` | Stop the background service / ID registration |
+| `whitelist` | comma-separated IDs | Restrict incoming connections to listed IDs |
+
+For the full list of available settings, see the [RustDesk Advanced Client Settings documentation](https://rustdesk.com/docs/en/self-host/client-configuration/advanced-settings/).
 
 ## Asset Branding
 

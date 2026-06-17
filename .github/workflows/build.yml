@@ -282,6 +282,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: linux
 
       - name: Verify injection
@@ -450,6 +451,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: linux
 
       - name: Download Linux packages
@@ -522,6 +524,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: linux
 
       - name: Download Linux packages
@@ -620,6 +623,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: windows
 
       - name: Verify injection
@@ -832,6 +836,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: macos
 
       - name: Verify injection
@@ -970,6 +975,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: macos
 
       - name: Verify injection
@@ -1110,6 +1116,7 @@ jobs:
           asset_dir: branding
           website_url: ${{ vars.WEBSITE_URL || 'https://rustdesk.com' }}
           privacy_url: ${{ vars.PRIVACY_URL || 'https://rustdesk.com/privacy' }}
+          client_config: ${{ vars.CLIENT_CONFIG }}
           target: android
 
       - name: Verify injection
