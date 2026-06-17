@@ -42,7 +42,9 @@ def replace_one(path: pathlib.Path, pattern: str, replacement: str, label: str) 
     print(f"Updated {label}")
 
 
-def replace_optional(path: pathlib.Path, pattern: str, replacement: str, label: str) -> int:
+def replace_optional(
+    path: pathlib.Path, pattern: str, replacement: str, label: str
+) -> int:
     if not path.exists():
         print(f"Skipped {label}; file not found: {path}")
         return 0
@@ -79,10 +81,34 @@ def update_desktop_file(path: pathlib.Path, app_name: str, description: str) -> 
         text = re.sub(r"^Name=.*$", f"Name={app_name}", text, flags=re.MULTILINE)
 
     if description:
-        text = re.sub(r"^Comment=.*$", f"Comment={description}", text, flags=re.MULTILINE)
+        text = re.sub(
+            r"^Comment=.*$", f"Comment={description}", text, flags=re.MULTILINE
+        )
 
     write_text(path, text)
     print(f"Updated desktop file: {path}")
+
+
+def touch_if_exists(path: pathlib.Path, label: str) -> None:
+    if path.exists():
+        path.touch()
+        print(f"Touched {label}: {path}")
+
+
+def touch_resource_build_inputs(source_dir: pathlib.Path) -> None:
+    """Force build systems to recompile embedded resources after branding changes.
+
+    RustDesk embeds icons through a few different platform-specific resource
+    compilers. Some of those build scripts do not declare the icon files as
+    rebuild inputs, so an incremental build can otherwise reuse the previous
+    RustDesk icon even after the files were copied.
+    """
+    for rel, label in (
+        ("build.rs", "root Cargo build script"),
+        ("libs/portable/build.rs", "portable Cargo build script"),
+        ("flutter/windows/runner/Runner.rc", "Windows runner resource script"),
+    ):
+        touch_if_exists(source_dir / rel, label)
 
 
 def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None:
@@ -96,6 +122,7 @@ def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None
         return
 
     mapping: list[tuple[str, str]] = [
+        # Native/package resources
         ("icon.ico", "res/icon.ico"),
         ("tray-icon.ico", "res/tray-icon.ico"),
         ("icon.png", "res/icon.png"),
@@ -106,6 +133,7 @@ def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None
         ("logo.svg", "res/logo.svg"),
         ("logo-header.svg", "res/logo-header.svg"),
         ("rustdesk-banner.svg", "res/rustdesk-banner.svg"),
+        ("scalable.svg", "res/scalable.svg"),
         ("mac-icon.png", "res/mac-icon.png"),
         ("mac-tray-dark-x2.png", "res/mac-tray-dark-x2.png"),
         ("mac-tray-light-x2.png", "res/mac-tray-light-x2.png"),
@@ -114,6 +142,8 @@ def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None
         # Flutter runtime assets
         ("logo.png", "flutter/assets/logo.png"),
         ("icon.png", "flutter/assets/icon.png"),
+        ("icon.ico", "flutter/assets/icon.ico"),
+        ("logo.svg", "flutter/assets/icon.svg"),
     ]
 
     copied = 0
@@ -128,9 +158,22 @@ def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None
             copied += 1
             print(f"Copied branding asset: {src_name} -> {dst_name}")
 
+    # Current RustDesk Linux packages install res/scalable.svg as the hicolor
+    # scalable app icon. The branding bundle historically only provided
+    # logo.svg, so keep supporting that by using it as a fallback.
+    scalable_svg = asset_dir / "scalable.svg"
+    logo_svg = asset_dir / "logo.svg"
+    if not scalable_svg.exists() and logo_svg.exists():
+        dst = source_dir / "res" / "scalable.svg"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(logo_svg, dst)
+        copied += 1
+        print("Copied branding fallback: logo.svg -> res/scalable.svg")
+
     if copied == 0:
         print(f"No known branding assets found in {asset_dir}")
     else:
+        touch_resource_build_inputs(source_dir)
         print(f"Copied {copied} branding asset(s)")
 
 
@@ -160,9 +203,15 @@ def inject_default_settings(
                 for k, v in extra.items():
                     entries.append((str(k), str(v)))
             else:
-                print("Warning: CLIENT_CONFIG is not a JSON object; ignoring", file=sys.stderr)
+                print(
+                    "Warning: CLIENT_CONFIG is not a JSON object; ignoring",
+                    file=sys.stderr,
+                )
         except json.JSONDecodeError as exc:
-            print(f"Warning: failed to parse CLIENT_CONFIG: {exc}; ignoring", file=sys.stderr)
+            print(
+                f"Warning: failed to parse CLIENT_CONFIG: {exc}; ignoring",
+                file=sys.stderr,
+            )
 
     rust_entries = ", ".join(
         f'("{rust_string(k)}".to_owned(), "{rust_string(v)}".to_owned())'
@@ -203,7 +252,7 @@ def apply_server_config(
 
     replace_one(
         config_file,
-        r'pub\s+const\s+RENDEZVOUS_SERVERS\s*:\s*&\s*\[\s*&str\s*\]\s*=\s*&\s*\[.*?\]\s*;',
+        r"pub\s+const\s+RENDEZVOUS_SERVERS\s*:\s*&\s*\[\s*&str\s*\]\s*=\s*&\s*\[.*?\]\s*;",
         f'pub const RENDEZVOUS_SERVERS: &[&str] = &["{rust_string(host)}"];',
         "RENDEZVOUS_SERVERS",
     )
@@ -313,7 +362,12 @@ def apply_links(source_dir: pathlib.Path, website_url: str, privacy_url: str) ->
         return
 
     files = [
-        source_dir / "flutter" / "lib" / "desktop" / "pages" / "desktop_setting_page.dart",
+        source_dir
+        / "flutter"
+        / "lib"
+        / "desktop"
+        / "pages"
+        / "desktop_setting_page.dart",
         source_dir / "flutter" / "lib" / "mobile" / "pages" / "settings_page.dart",
         source_dir / "flutter" / "lib" / "desktop" / "pages" / "install_page.dart",
         source_dir / "flutter" / "lib" / "common.dart",
@@ -354,7 +408,7 @@ def apply_flutter_titles(source_dir: pathlib.Path, app_name: str, company: str) 
 
         # Patch getWindowName() to use the branded name for the window title bar
         text = text.replace(
-            '  final name = bind.mainGetAppNameSync();',
+            "  final name = bind.mainGetAppNameSync();",
             f'  final name = "{app_name}";',
         )
 
@@ -366,7 +420,14 @@ def apply_flutter_titles(source_dir: pathlib.Path, app_name: str, company: str) 
     elif not common_file.exists():
         print(f"Skipped title patching; file not found: {common_file}")
 
-    settings_file = source_dir / "flutter" / "lib" / "desktop" / "pages" / "desktop_setting_page.dart"
+    settings_file = (
+        source_dir
+        / "flutter"
+        / "lib"
+        / "desktop"
+        / "pages"
+        / "desktop_setting_page.dart"
+    )
     if settings_file.exists():
         text = read_text(settings_file)
         original = text
@@ -388,9 +449,13 @@ def apply_flutter_titles(source_dir: pathlib.Path, app_name: str, company: str) 
         if text != original:
             write_text(settings_file, text)
             if app_name:
-                print("Updated about dialog title (flutter/lib/desktop/pages/desktop_setting_page.dart)")
+                print(
+                    "Updated about dialog title (flutter/lib/desktop/pages/desktop_setting_page.dart)"
+                )
             if company:
-                print("Updated about dialog copyright (flutter/lib/desktop/pages/desktop_setting_page.dart)")
+                print(
+                    "Updated about dialog copyright (flutter/lib/desktop/pages/desktop_setting_page.dart)"
+                )
         else:
             print("No about dialog matches found")
     else:

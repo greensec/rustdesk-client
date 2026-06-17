@@ -113,15 +113,21 @@ Place image assets in a `branding/` directory at the root of this repository. Th
 | `logo.svg` | `res/logo.svg` | Application logo (SVG) |
 | `logo-header.svg` | `res/logo-header.svg` | Header/logo in UI |
 | `rustdesk-banner.svg` | `res/rustdesk-banner.svg` | Banner image |
+| `scalable.svg` | `res/scalable.svg` | **Linux system icon** (installed into icon theme as `rustdesk.svg`) |
 | `mac-icon.png` | `res/mac-icon.png` | macOS application icon |
 | `mac-tray-dark-x2.png` | `res/mac-tray-dark-x2.png` | macOS dark-mode tray icon (@2x) |
 | `mac-tray-light-x2.png` | `res/mac-tray-light-x2.png` | macOS light-mode tray icon (@2x) |
 | `logo.png` | `flutter/assets/logo.png` | Logo shown in the home page UI |
 | `icon.png` | `flutter/assets/icon.png` | Icon shown in the Flutter UI (fallback for `icon.svg`) |
+| `icon.ico` | `flutter/assets/icon.ico` | **Windows taskbar/window icon** (loaded at runtime by the Flutter runner, overrides `app_icon.ico`) |
 
 **Windows-specific note:**
 - `icon.ico` is copied to **both** `res/icon.ico` (used by the Rust build) **and** `flutter/windows/runner/resources/app_icon.ico` (used by the Flutter Windows runner). If you only change the tray icon, provide `tray-icon.ico`.
 - To change the **taskbar / window icon** on Windows, you must provide `icon.ico`.
+
+**Linux-specific note:**
+- `scalable.svg` is installed into the system icon theme as `rustdesk.svg`. If you skip it, the Linux taskbar / application menu may still show the upstream icon.
+- The Linux runner also falls back to local `res/32x32.png`, `res/64x64.png`, `res/128x128.png`, and `res/128x128@2x.png` when the app is run without installation (e.g., directly from the build directory).
 
 Only include the files you want to override; missing ones will keep the upstream defaults.
 
