@@ -1302,6 +1302,41 @@ jobs:
           copy_libcxx_shared arm-linux-androideabi armeabi-v7a
           copy_libcxx_shared x86_64-linux-android x86_64
 
+      - name: Free disk space after native builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd rustdesk
+          # Remove large Rust build artifacts after .so files are copied
+          rm -rf ./target/*/release/liblibrustdesk.so
+          rm -rf ./target/*/release/*.rlib
+          rm -rf ./target/*/release/deps
+          rm -rf ./target/*/release/build
+          rm -rf ./target/*/release/.fingerprint
+          # Clean up any previous Gradle/Flutter intermediate build dirs
+          rm -rf ./flutter/build ./flutter/android/.gradle
+          echo "=== Disk usage after cleanup ==="
+          df -h
+
+      - name: Patch Android Kotlin version
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd rustdesk/flutter/android
+
+          # Update Kotlin Gradle plugin to a version compatible with Flutter dependencies
+          if [ -f build.gradle ]; then
+            sed -i 's/ext.kotlin_version = ".*"/ext.kotlin_version = "1.9.10"/' build.gradle || true
+            sed -i 's/ext.kotlin_version=".*"/ext.kotlin_version="1.9.10"/' build.gradle || true
+          fi
+
+          if [ -f settings.gradle ]; then
+            sed -i 's/id "org.jetbrains.kotlin.android" version ".*"/id "org.jetbrains.kotlin.android" version "1.9.10"/' settings.gradle || true
+          fi
+
+          echo "=== Kotlin version after patching ==="
+          grep -r "kotlin" build.gradle settings.gradle 2>/dev/null || true
+
       - name: Build Flutter APK
         shell: bash
         env:
