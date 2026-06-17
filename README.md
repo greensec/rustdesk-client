@@ -48,7 +48,7 @@ Set these as **repository secrets** (`Settings → Secrets and variables → Sec
 | `RENDEZVOUS_SERVER` | ID / rendezvous server (`hbbs`) host or IP | `id.example.com` |
 | `RELAY_SERVER` | Relay server (`hbbr`) host or IP (optional) | `relay.example.com` |
 | `API_SERVER` | API server for Pro login / web console (optional) | `https://api.example.com` |
-| `RS_PUB_KEY` | Public key from `id_ed25519.pub` | `1Mf5l...` |
+| `RS_PUB_KEY` | Public key from `id_ed25519.pub` (injected as custom server key, upstream network key is kept) | `1Mf5l...` |
 
 ## Variables
 
@@ -116,6 +116,12 @@ Place image assets in a `branding/` directory at the root of this repository. Th
 | `mac-icon.png` | `res/mac-icon.png` | macOS application icon |
 | `mac-tray-dark-x2.png` | `res/mac-tray-dark-x2.png` | macOS dark-mode tray icon (@2x) |
 | `mac-tray-light-x2.png` | `res/mac-tray-light-x2.png` | macOS light-mode tray icon (@2x) |
+| `logo.png` | `flutter/assets/logo.png` | Logo shown in the home page UI |
+| `icon.png` | `flutter/assets/icon.png` | Icon shown in the Flutter UI (fallback for `icon.svg`) |
+
+**Windows-specific note:**
+- `icon.ico` is copied to **both** `res/icon.ico` (used by the Rust build) **and** `flutter/windows/runner/resources/app_icon.ico` (used by the Flutter Windows runner). If you only change the tray icon, provide `tray-icon.ico`.
+- To change the **taskbar / window icon** on Windows, you must provide `icon.ico`.
 
 Only include the files you want to override; missing ones will keep the upstream defaults.
 

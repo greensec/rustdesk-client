@@ -95,25 +95,30 @@ def copy_branding_assets(source_dir: pathlib.Path, asset_dir_value: str) -> None
         print(f"Branding asset directory not found, skipped: {asset_dir}")
         return
 
-    mapping = {
-        "icon.ico": "res/icon.ico",
-        "tray-icon.ico": "res/tray-icon.ico",
-        "icon.png": "res/icon.png",
-        "32x32.png": "res/32x32.png",
-        "64x64.png": "res/64x64.png",
-        "128x128.png": "res/128x128.png",
-        "128x128@2x.png": "res/128x128@2x.png",
-        "logo.svg": "res/logo.svg",
-        "logo-header.svg": "res/logo-header.svg",
-        "rustdesk-banner.svg": "res/rustdesk-banner.svg",
-        "mac-icon.png": "res/mac-icon.png",
-        "mac-tray-dark-x2.png": "res/mac-tray-dark-x2.png",
-        "mac-tray-light-x2.png": "res/mac-tray-light-x2.png",
-    }
+    mapping: list[tuple[str, str]] = [
+        ("icon.ico", "res/icon.ico"),
+        ("tray-icon.ico", "res/tray-icon.ico"),
+        ("icon.png", "res/icon.png"),
+        ("32x32.png", "res/32x32.png"),
+        ("64x64.png", "res/64x64.png"),
+        ("128x128.png", "res/128x128.png"),
+        ("128x128@2x.png", "res/128x128@2x.png"),
+        ("logo.svg", "res/logo.svg"),
+        ("logo-header.svg", "res/logo-header.svg"),
+        ("rustdesk-banner.svg", "res/rustdesk-banner.svg"),
+        ("mac-icon.png", "res/mac-icon.png"),
+        ("mac-tray-dark-x2.png", "res/mac-tray-dark-x2.png"),
+        ("mac-tray-light-x2.png", "res/mac-tray-light-x2.png"),
+        # Windows Flutter runner generated icon
+        ("icon.ico", "flutter/windows/runner/resources/app_icon.ico"),
+        # Flutter runtime assets
+        ("logo.png", "flutter/assets/logo.png"),
+        ("icon.png", "flutter/assets/icon.png"),
+    ]
 
     copied = 0
 
-    for src_name, dst_name in mapping.items():
+    for src_name, dst_name in mapping:
         src = asset_dir / src_name
         dst = source_dir / dst_name
 
@@ -194,20 +199,13 @@ def apply_server_config(
         raise ValueError("Missing --host / RENDEZVOUS_SERVER")
 
     if not key:
-        raise ValueError("Missing --key / RS_PUB_KEY")
+        raise ValueError("Missing --key / custom server key")
 
     replace_one(
         config_file,
         r'pub\s+const\s+RENDEZVOUS_SERVERS\s*:\s*&\s*\[\s*&str\s*\]\s*=\s*&\s*\[.*?\]\s*;',
         f'pub const RENDEZVOUS_SERVERS: &[&str] = &["{rust_string(host)}"];',
         "RENDEZVOUS_SERVERS",
-    )
-
-    replace_one(
-        config_file,
-        r'pub\s+const\s+RS_PUB_KEY\s*:\s*&str\s*=\s*".*?"\s*;',
-        f'pub const RS_PUB_KEY: &str = "{rust_string(key)}";',
-        "RS_PUB_KEY",
     )
 
     inject_default_settings(

@@ -25,7 +25,7 @@ runs:
         grep -R "relay-server" rustdesk/libs/hbb_common/src/config.rs || true
         grep -R "api-server" rustdesk/libs/hbb_common/src/config.rs || true
         grep -R "RENDEZVOUS_SERVERS" rustdesk/libs/hbb_common/src/config.rs
-        grep -R "RS_PUB_KEY" rustdesk/libs/hbb_common/src/config.rs
+        grep -R "DEFAULT_SETTINGS" rustdesk/libs/hbb_common/src/config.rs
 
         if [ -n "$CLIENT_NAME" ]; then
           grep -R "$CLIENT_NAME" \
@@ -47,7 +47,7 @@ runs:
         Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "relay-server" -ErrorAction SilentlyContinue
         Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "api-server" -ErrorAction SilentlyContinue
         Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS"
-        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "RS_PUB_KEY"
+        Select-String -Path rustdesk/libs/hbb_common/src/config.rs -Pattern "DEFAULT_SETTINGS"
 
         if ("$env:CLIENT_NAME" -ne "") {
           Select-String `
