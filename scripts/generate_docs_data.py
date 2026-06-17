@@ -35,6 +35,22 @@ def encode_rustdesk_server_config(cfg: dict[str, str]) -> str:
     return base64.urlsafe_b64encode(payload.encode()).decode()[::-1]
 
 
+def encode_rustdesk_qr_config(cfg: dict[str, str]) -> str:
+    """Return the server config string for RustDesk's QR code scanner.
+
+    Format: config={"host": "...", "key": "..."} (plain JSON, not base64 encoded).
+    """
+
+    payload: dict[str, str] = {"host": cfg["id_server"]}
+    if cfg.get("relay_server"):
+        payload["relay"] = cfg["relay_server"]
+    if cfg.get("api_server"):
+        payload["api"] = cfg["api_server"]
+    if cfg.get("key"):
+        payload["key"] = cfg["key"]
+    return "config=" + json.dumps(payload, separators=(",", ":"))
+
+
 def latest_release(repo: str) -> dict:
     result = subprocess.run(
         ["gh", "api", f"repos/{repo}/releases", "--jq", "map(select(.draft == false))[0]"],
@@ -172,6 +188,7 @@ def generate_config_yml() -> None:
     }
 
     encoded = encode_rustdesk_server_config(cfg)
+    qr_data = encode_rustdesk_qr_config(cfg)
 
     out = pathlib.Path("docs/_data/config.yml")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -193,7 +210,7 @@ def generate_config_yml() -> None:
             box_size=10,
             border=2,
         )
-        qr.add_data(encoded)
+        qr.add_data(qr_data)
         qr.make(fit=True)
         img = qr.make_image(fill_color="#1e293b", back_color="#ffffff")
 
