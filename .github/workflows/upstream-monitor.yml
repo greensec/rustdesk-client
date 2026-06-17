@@ -1,0 +1,60 @@
+name: Upstream Monitor
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  check-and-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check latest upstream RustDesk tag
+        id: upstream
+        run: |
+          set -euo pipefail
+          latest_tag=$(curl -sL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/rustdesk/rustdesk/tags?per_page=1" | \
+            jq -r '.[0].name // empty')
+          echo "tag=$latest_tag" >> "$GITHUB_OUTPUT"
+          echo "Latest upstream tag: $latest_tag"
+
+      - name: Check latest release in this repo
+        id: local
+        run: |
+          set -euo pipefail
+          latest_release=$(curl -sL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases?per_page=1" | \
+            jq -r '.[0].tag_name // empty')
+          echo "tag=$latest_release" >> "$GITHUB_OUTPUT"
+          echo "Latest local release: $latest_release"
+
+      - name: Trigger build if upstream is newer
+        if: steps.upstream.outputs.tag != '' && steps.upstream.outputs.tag != steps.local.outputs.tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "New upstream tag detected: ${{ steps.upstream.outputs.tag }}"
+          echo "Current local release: ${{ steps.local.outputs.tag }}"
+
+          gh workflow run build.yml \
+            --repo "${{ github.repository }}" \
+            -f rustdesk_ref="${{ steps.upstream.outputs.tag }}" \
+            -f publish_release=true \
+            -f prerelease=false \
+            -f use_github_runners=true \
+            -f build_linux=true \
+            -f build_windows=true \
+            -f build_macos_x64=false \
+            -f build_macos_arm64=false \
+            -f build_android=true \
+            -f release_tag=""

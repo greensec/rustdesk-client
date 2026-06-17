@@ -4,17 +4,18 @@ Custom RustDesk client builder with self-hosted server defaults and branding inj
 
 ## Overview
 
-This repository automates the build and packaging of a customized [RustDesk](https://github.com/rustdesk/rustdesk) client. It fetches the upstream RustDesk source, injects your self-hosted server configuration and branding, then builds signed packages for Linux, Windows, and macOS via GitHub Actions.
+This repository automates the build and packaging of a customized [RustDesk](https://github.com/rustdesk/rustdesk) client. It fetches the upstream RustDesk source, injects your self-hosted server configuration and branding, then builds signed packages for Linux, Windows, macOS, and Android via GitHub Actions.
 
 ## What It Does
 
 - **Source**: Clones the official RustDesk repository at a configurable tag/branch/commit.
 - **Server Injection**: Hardcodes your rendezvous, relay, and API server addresses plus your public key into the client.
-- **Branding**: Replaces the application name, bundle ID, description, company, and assets.
+- **Branding**: Replaces the window title, about dialog, copyright, and visual assets.
+- **Links**: Patches website and privacy-policy URLs in the client UI.
 - **Builds**: Produces platform-native packages:
   - **Linux**: DEB, RPM, AppImage, Flatpak
-  - **Windows**: Portable executable
-  - **macOS**: DMG
+  - **Windows**: MSI installer + portable executable
+  - **macOS**: DMG (x64 & ARM64)
   - **Android**: APK (arm64, armv7, x86_64)
 - **Release**: Automatically publishes a GitHub Release with all artifacts.
 
@@ -34,28 +35,35 @@ This repository automates the build and packaging of a customized [RustDesk](htt
 ## Quick Start
 
 1. **Fork this repository**.
-2. **Configure repository secrets & variables**:
-   - Secrets: `RENDEZVOUS_SERVER`, `RELAY_SERVER`, `API_SERVER`, `RS_PUB_KEY`
-   - Variables: `CLIENT_NAME`, `CLIENT_IDENTIFIER`, `CLIENT_DESCRIPTION`, `CLIENT_COMPANY`
+2. **Configure repository secrets & variables** (see tables below).
 3. **Add branding assets** to a `branding/` directory (optional).
 4. **Run the workflow** manually via GitHub Actions (`Build RustDesk`).
 
-## Branding
+## Secrets
 
-Branding is injected into the upstream RustDesk source before building. You can customize both text metadata and visual assets.
+Set these as **repository secrets** (`Settings → Secrets and variables → Secrets`):
 
-### Text Branding
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `RENDEZVOUS_SERVER` | ID / rendezvous server (`hbbs`) host or IP | `id.example.com` |
+| `RELAY_SERVER` | Relay server (`hbbr`) host or IP (optional) | `relay.example.com` |
+| `API_SERVER` | API server for Pro login / web console (optional) | `https://api.example.com` |
+| `RS_PUB_KEY` | Public key from `id_ed25519.pub` | `1Mf5l...` |
+
+## Variables
 
 Set these as **repository variables** (`Settings → Secrets and variables → Variables`):
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `CLIENT_NAME` | Application name shown in the UI, window title, and package metadata | `MyRemote` |
-| `CLIENT_IDENTIFIER` | Bundle identifier / application ID (reverse-DNS) | `de.company.myremote` |
+| `CLIENT_NAME` | Window title and About dialog title (install path & binary name stay `RustDesk`) | `greenSec RustDesk Client` |
+| `CLIENT_IDENTIFIER` | Bundle identifier / application ID (reverse-DNS) | `de.greensec.rustdesk` |
 | `CLIENT_DESCRIPTION` | Short description used in `.desktop` files and Windows metadata | `Secure remote desktop` |
-| `CLIENT_COMPANY` | Company name used in copyright strings | `Company GmbH` |
+| `CLIENT_COMPANY` | Company name used in copyright strings | `greenSec GmbH` |
+| `WEBSITE_URL` | Website URL shown in the About dialog | `https://greensec.de` |
+| `PRIVACY_URL` | Privacy policy URL shown in the About dialog | `https://greensec.de/datenschutz` |
 
-### Asset Branding
+## Asset Branding
 
 Place image assets in a `branding/` directory at the root of this repository. The build workflow automatically copies them into the RustDesk source tree.
 
@@ -83,15 +91,18 @@ Only include the files you want to override; missing ones will keep the upstream
 
 | Input | Description | Default |
 |-------|-------------|---------|
-| `rustdesk_ref` | RustDesk tag, branch, or commit to build | `1.4.6` |
+| `rustdesk_ref` | RustDesk tag, branch, or commit to build | `1.4.7` |
 | `publish_release` | Create/update a GitHub Release | `true` |
 | `release_tag` | Custom release tag (auto-generated if empty) | `""` |
 | `prerelease` | Mark release as prerelease | `false` |
+| `use_github_runners` | Use GitHub-hosted runners instead of self-hosted runners | `true` |
 | `build_linux` | Build Linux packages | `true` |
 | `build_windows` | Build Windows packages | `true` |
-| `build_macos` | Build macOS packages | `true` |
+| `build_macos_x64` | Build macOS x64 (Intel) package | `true` |
+| `build_macos_arm64` | Build macOS ARM64 (Apple Silicon) package | `true` |
 | `build_android` | Build Android packages | `true` |
-| `use_github_runners` | Use GitHub-hosted runners instead of self-hosted runners | `true` |
+| `website_url` | Override the website URL for this run | falls back to `vars.WEBSITE_URL` or `https://greensec.de` |
+| `privacy_url` | Override the privacy policy URL for this run | falls back to `vars.PRIVACY_URL` or `https://greensec.de/datenschutz` |
 
 ## Build Environments
 

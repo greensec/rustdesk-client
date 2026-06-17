@@ -230,24 +230,10 @@ def apply_branding(
 
     if app_name:
         replace_optional(
-            config_file,
-            r'pub\s+static\s+ref\s+APP_NAME\s*:\s*RwLock\s*<\s*String\s*>\s*=\s*RwLock::new\(".*?"\.to_owned\(\)\)\s*;',
-            f'pub static ref APP_NAME: RwLock<String> = RwLock::new("{rust_string(app_name)}".to_owned());',
-            "APP_NAME",
-        )
-
-        replace_optional(
             cargo_file,
             r'ProductName\s*=\s*".*?"',
             f'ProductName = "{rust_string(app_name)}"',
             "Windows ProductName",
-        )
-
-        replace_optional(
-            cargo_file,
-            r'\bname\s*=\s*"RustDesk"',
-            f'name = "{rust_string(app_name)}"',
-            "bundle name",
         )
 
     if description:
@@ -343,6 +329,61 @@ def apply_links(source_dir: pathlib.Path, website_url: str, privacy_url: str) ->
     print("Link patching finished")
 
 
+def apply_flutter_titles(source_dir: pathlib.Path, app_name: str, company: str) -> None:
+    if not app_name and not company:
+        print("No app name or company provided; title patching skipped")
+        return
+
+    common_file = source_dir / "flutter" / "lib" / "common.dart"
+    if common_file.exists() and app_name:
+        text = read_text(common_file)
+        original = text
+
+        # Patch getWindowName() to use the branded name for the window title bar
+        text = text.replace(
+            '  final name = bind.mainGetAppNameSync();',
+            f'  final name = "{app_name}";',
+        )
+
+        if text != original:
+            write_text(common_file, text)
+            print("Updated window title (flutter/lib/common.dart)")
+        else:
+            print("No window title match found")
+    elif not common_file.exists():
+        print(f"Skipped title patching; file not found: {common_file}")
+
+    settings_file = source_dir / "flutter" / "lib" / "desktop" / "pages" / "desktop_setting_page.dart"
+    if settings_file.exists():
+        text = read_text(settings_file)
+        original = text
+
+        if app_name:
+            # Patch about dialog title
+            text = text.replace(
+                "_Card(title: translate('About RustDesk'), children: [",
+                f"_Card(title: 'About {app_name}', children: [",
+            )
+
+        if company:
+            # Patch hardcoded copyright in about dialog
+            text = text.replace(
+                "Purslane Ltd.",
+                company,
+            )
+
+        if text != original:
+            write_text(settings_file, text)
+            if app_name:
+                print("Updated about dialog title (flutter/lib/desktop/pages/desktop_setting_page.dart)")
+            if company:
+                print("Updated about dialog copyright (flutter/lib/desktop/pages/desktop_setting_page.dart)")
+        else:
+            print("No about dialog matches found")
+    else:
+        print(f"Skipped about dialog patching; file not found: {settings_file}")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Inject self-hosted RustDesk server config and optional branding."
@@ -411,6 +452,8 @@ def main() -> int:
             website_url=website_url,
             privacy_url=privacy_url,
         )
+
+        apply_flutter_titles(source_dir=source_dir, app_name=app_name, company=company)
 
     except Exception as exc:
         print(f"Configuration failed: {exc}", file=sys.stderr)
