@@ -1625,6 +1625,7 @@ jobs:
           fi
   update_pages:
     needs: publish_release
+    if: ${{ always() && !cancelled() && needs.publish_release.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
