@@ -446,6 +446,13 @@ def apply_flutter_titles(source_dir: pathlib.Path, app_name: str, company: str) 
                 company,
             )
 
+            # Remove the upstream slogan/tagline
+            text = re.sub(
+                r"Text\(\s*translate\(['\"]Slogan_tip['\"]\),\s*style:\s*TextStyle\([\s\S]*?\),\s*\)\s*,?",
+                "",
+                text,
+            )
+
         if text != original:
             write_text(settings_file, text)
             if app_name:
