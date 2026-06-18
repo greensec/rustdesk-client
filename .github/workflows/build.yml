@@ -1232,6 +1232,10 @@ jobs:
                 done
                 exit 1
               }
+
+            # Allow vcpkg's filesystem lock to be fully released before
+            # the next invocation (avoid "Failed to take the filesystem lock")
+            sleep 5
           done
 
           # Merge per-triplet installs into the standard location
