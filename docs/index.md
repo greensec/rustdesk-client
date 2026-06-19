@@ -190,9 +190,9 @@ window.RUSTDESK_CONFIG = {
       </div>
       <div class="mt-2">
         <p class="config-help" data-i18n-html="config.copyHelp">Copy this configuration string and paste it into RustDesk via <strong>Settings → Network → ID/Relay Server → <i class="ti ti-clipboard"></i> (Import Server Config)</strong>:</p>
-        <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
-        <div class="btn-group">
-          <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy configuration</span></button>
+        <div class="config-string-row">
+          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
+          <button class="btn btn-copy-inline" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy configuration</span></button>
         </div>
       </div>
 

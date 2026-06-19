@@ -540,7 +540,7 @@ body {
 
 .config-string {
   width: 100%;
-  min-height: 120px;
+  min-height: 80px;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -549,6 +549,16 @@ body {
   resize: vertical;
   background: #f8fafc;
   color: var(--text);
+}
+
+.config-string-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.config-string-row .config-string {
+  flex: 1;
 }
 
 .btn {
@@ -769,8 +779,12 @@ button:focus-visible,
   }
   .hero-actions .btn,
   .recommended-download .btn,
-  .btn-group .btn {
+  .btn-group .btn,
+  .config-string-row .btn {
     width: 100%;
+  }
+  .config-string-row {
+    flex-direction: column;
   }
   .release-summary {
     grid-template-columns: 1fr;
