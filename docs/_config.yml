@@ -1,5 +1,5 @@
 title: RustDesk Clients
-description: Download customized RustDesk clients with pre-configured self-hosted server settings
+description: Download preconfigured RustDesk clients for self-hosted RustDesk servers
 baseurl: "/rustdesk-client"
 url: "https://greensec.github.io"
 

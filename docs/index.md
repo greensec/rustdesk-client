@@ -17,7 +17,7 @@ window.RUSTDESK_CONFIG = {
   <div class="container">
     <div class="header-top">
       <h1>{{ site.data.config.client_name | default: site.title }}</h1>
-      <div class="lang-selector" aria-label="Language selector">
+      <div class="lang-selector" aria-label="Language selection">
         <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
         <button class="lang-btn" data-lang="de" aria-pressed="false">DE</button>
       </div>
@@ -103,8 +103,8 @@ window.RUSTDESK_CONFIG = {
             {% endif %}
           </ul>
           <div class="note">
-            <span data-i18n="macos.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
-            <a href="#config" data-i18n="macos.noteLink">See the manual setup steps.</a>
+            <span data-i18n="macos.noteText">These are official upstream builds and do not include your self-hosted server configuration.</span>
+            <a href="#config" data-i18n="macos.noteLink">See manual setup steps.</a>
           </div>
           {% else %}
           <p class="no-build" data-i18n="noBuild.macos">No macOS builds available yet.</p>
@@ -139,8 +139,8 @@ window.RUSTDESK_CONFIG = {
           {% endif %}
         </ul>
         <div class="note">
-          <span data-i18n="android.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
-          <a href="#config" data-i18n="android.noteLink">See the manual setup steps.</a>
+          <span data-i18n="android.noteText">These are official upstream builds and do not include your self-hosted server configuration.</span>
+          <a href="#config" data-i18n="android.noteLink">See manual setup steps.</a>
         </div>
         {% else %}
         <p class="no-build" data-i18n="noBuild.android">No Android builds available yet.</p>
@@ -163,9 +163,9 @@ window.RUSTDESK_CONFIG = {
       <div class="instructions">
         <h4><i class="ti ti-brand-android"></i> <span data-i18n="mobile.androidTitle">Android</span></h4>
         <ol>
-          <li data-i18n-html="mobile.androidStep1">Download and install the official RustDesk APK for your device above.</li>
-          <li data-i18n-html="mobile.androidStep2">Open RustDesk, go to <strong>Settings</strong> and tap the <i class="ti ti-qrcode"></i> (<strong>barcode icon</strong>) in the top right. Allow camera access and scan the QR code above.</li>
-          <li data-i18n-html="mobile.androidStep3">Alternatively, go to <strong>Settings → ID/Relay-Server</strong> and paste the config string from the <a href="#config">Desktop Client Configuration</a> section or enter the server details manually.</li>
+          <li data-i18n-html="mobile.androidStep1">Download and install the official RustDesk APK for your device from the list above.</li>
+          <li data-i18n-html="mobile.androidStep2">Open RustDesk, go to <strong>Settings</strong>, and tap the <i class="ti ti-qrcode"></i> (<strong>QR code icon</strong>) in the upper-right corner. Allow camera access and scan the QR code above.</li>
+          <li data-i18n-html="mobile.androidStep3">Alternatively, go to <strong>Settings → ID/Relay Server</strong> and paste the configuration string from the <a href="#config">Desktop Client Configuration</a> section, or enter the server details manually.</li>
         </ol>
       </div>
 
@@ -173,8 +173,8 @@ window.RUSTDESK_CONFIG = {
         <h4><i class="ti ti-brand-apple"></i> <span data-i18n="mobile.iosTitle">iOS</span></h4>
         <ol>
           <li data-i18n-html="mobile.iosStep1">Install RustDesk from the <a href="https://apps.apple.com/us/app/rustdesk-remote-desktop/id1581225015" target="_blank" rel="noopener">App Store</a>.</li>
-          <li data-i18n-html="mobile.iosStep2">Open RustDesk, go to <strong>Settings</strong> and tap the <i class="ti ti-qrcode"></i> (<strong>barcode icon</strong>) in the top right. Allow camera access and scan the QR code above.</li>
-          <li data-i18n-html="mobile.iosStep3">Alternatively, go to <strong>Settings → ID/Relay-Server</strong> and paste the config string from the <a href="#config">Desktop Client Configuration</a> section or enter the server details manually.</li>
+          <li data-i18n-html="mobile.iosStep2">Open RustDesk, go to <strong>Settings</strong>, and tap the <i class="ti ti-qrcode"></i> (<strong>QR code icon</strong>) in the upper-right corner. Allow camera access and scan the QR code above.</li>
+          <li data-i18n-html="mobile.iosStep3">Alternatively, go to <strong>Settings → ID/Relay Server</strong> and paste the configuration string from the <a href="#config">Desktop Client Configuration</a> section, or enter the server details manually.</li>
         </ol>
       </div>
     </div>
@@ -186,13 +186,13 @@ window.RUSTDESK_CONFIG = {
     <div class="config-section">
       <div class="config-warning">
         <i class="ti ti-alert-triangle config-warning-icon"></i>
-        <span data-i18n-html="config.note">The downloads on this page are <strong>pre-configured</strong>.<br>You only need this section if you are using the <strong>macOS</strong> upstream client or a regular RustDesk client.</span>
+        <span data-i18n-html="config.note">The downloads on this page are <strong>preconfigured</strong>.<br>You only need this section when using the <strong>macOS</strong> upstream client or a standard RustDesk client.</span>
       </div>
       <div class="mt-2">
-        <p class="config-help" data-i18n-html="config.copyHelp">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
+        <p class="config-help" data-i18n-html="config.copyHelp">Copy this configuration string and paste it into RustDesk via <strong>Settings → Network → ID/Relay Server → <i class="ti ti-clipboard"></i> (Import Server Config)</strong>:</p>
         <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
         <div class="btn-group">
-          <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy Config</span></button>
+          <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy configuration</span></button>
         </div>
       </div>
 
@@ -200,30 +200,30 @@ window.RUSTDESK_CONFIG = {
         <h4><i class="ti ti-copy"></i> <span data-i18n="manual.quickImportTitle">Quick Import (recommended)</span></h4>
         <ol>
           <li data-i18n-html="manual.quickStep1">Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.</li>
-          <li data-i18n-html="manual.quickStep2">Select <strong>Network</strong> and unlock the settings with elevated privileges.</li>
-          <li data-i18n-html="manual.quickStep3">Click <strong>Import Server Config</strong> and paste the config string above.</li>
+          <li data-i18n-html="manual.quickStep2">Select <strong>Network</strong> and unlock the settings with administrator privileges.</li>
+          <li data-i18n-html="manual.quickStep3">Open <strong>ID/Relay Server</strong>, click <i class="ti ti-clipboard"></i> (<strong>Import Server Config</strong>), and paste the configuration string from the section above.</li>
         </ol>
       </div>
 
       <div class="instructions mt-1">
         <h4><i class="ti ti-keyboard"></i> <span data-i18n="manual.manualEntryTitle">Manual Entry</span></h4>
         <ol>
-          <li data-i18n-html="manual.manualStep1">Open RustDesk → <strong>Network</strong> settings (unlocked).</li>
-          <li class="config-item"><strong data-i18n="config.idServer">ID Server</strong>:
-            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.id_server | default: '—' }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy ID Server"><i class="ti ti-copy"></i></button></span>
+          <li data-i18n-html="manual.manualStep1">Open RustDesk → <strong>ID/Relay Server</strong> settings (see Quick Import).</li>
+          <li class="config-item"><strong data-i18n="config.idServer">ID server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.id_server | default: '—' }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy ID server"><i class="ti ti-copy"></i></button></span>
           </li>
           {% if site.data.config.relay_server != "" %}
-          <li class="config-item"><strong data-i18n="config.relayServer">Relay Server</strong>:
-            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.relay_server }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy Relay Server"><i class="ti ti-copy"></i></button></span>
+          <li class="config-item"><strong data-i18n="config.relayServer">Relay server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.relay_server }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy relay server"><i class="ti ti-copy"></i></button></span>
           </li>
           {% endif %}
           {% if site.data.config.api_server != "" %}
-          <li class="config-item"><strong data-i18n="config.apiServer">API Server</strong>:
-            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.api_server }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy API Server"><i class="ti ti-copy"></i></button></span>
+          <li class="config-item"><strong data-i18n="config.apiServer">API server</strong>:
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.api_server }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy API server"><i class="ti ti-copy"></i></button></span>
           </li>
           {% endif %}
           <li class="config-item"><strong data-i18n="config.key">Key</strong>:
-            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.key | default: '—' }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy Key"><i class="ti ti-copy"></i></button></span>
+            <span class="config-field"><input type="text" class="config-value" value="{{ site.data.config.key | default: '—' }}" readonly><button class="btn btn-copy" data-copy-prev="" type="button" aria-label="Copy key"><i class="ti ti-copy"></i></button></span>
           </li>
           <li data-i18n-html="manual.manualStepApply">Click <strong>Apply</strong> or <strong>OK</strong> to save.</li>
         </ol>
@@ -249,7 +249,7 @@ window.RUSTDESK_CONFIG = {
 
   <noscript>
     <div class="page-note">
-      Download links still work, but the recommended download panel, QR code, and copy buttons require JavaScript.
+      Download links still work without JavaScript, but the recommended download panel, QR code, and copy buttons require it.
     </div>
   </noscript>
 
@@ -258,9 +258,9 @@ window.RUSTDESK_CONFIG = {
 <footer class="site-footer">
   <div class="container">
     <p>{% if site.data.release.tag != "" %}
-    <span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(prerelease)</span>{% endif %} |
+    <span data-i18n="footer.latestBuild">Latest build</span>: <a href="https://github.com/greensec/rustdesk-client/releases/tag/{{ site.data.release.tag }}" target="_blank" rel="noopener"><code>{{ site.data.release.tag }}</code></a>{% if site.data.release.prerelease %} <span data-i18n="footer.prerelease">(pre-release)</span>{% endif %} |
     {% endif %}
-    {% if site.data.config.imprint_url != "" %}<a href="{{ site.data.config.imprint_url }}" target="_blank" data-i18n-html="footer.impress">Impress</a>{% endif %}
+    {% if site.data.config.imprint_url != "" %}<a href="{{ site.data.config.imprint_url }}" target="_blank" data-i18n-html="footer.impress">Legal notice</a>{% endif %}
     </p>
   </div>
 </footer>
