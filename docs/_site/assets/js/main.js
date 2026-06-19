@@ -15,8 +15,8 @@ const I18N = {
     'recommended.macosDescription': 'Apple Silicon and Intel builds are available. These official upstream builds must be configured manually after installation.',
     'recommended.macosCta': 'View macOS options',
     'recommended.iosTitle': 'No iOS build is provided here',
-    'recommended.iosDescription': 'Use the server configuration below with a compatible RustDesk client.',
-    'recommended.iosCta': 'View server config',
+    'recommended.iosDescription': 'Install RustDesk from the App Store and configure it using the QR code or config string in the Mobile Installation section below.',
+    'recommended.iosCta': 'View mobile installation',
     'platform.detected': 'Detected on this device',
     'noBuild.linux': 'No Linux builds available yet.',
     'noBuild.windows': 'No Windows builds available yet.',
@@ -24,16 +24,16 @@ const I18N = {
     'noBuild.android': 'No Android builds available yet.',
     'macos.noteText': 'These are official upstream builds. They do not include the server configuration.',
     'macos.noteLink': 'See the manual setup steps.',
+    'android.noteText': 'These are official upstream builds. They do not include the server configuration.',
+    'android.noteLink': 'See the manual setup steps.',
     'manual.quickImportTitle': 'Quick Import (recommended)',
     'manual.quickStep1': 'Open RustDesk and click the <strong>menu button</strong> (⋯) next to your ID.',
     'manual.quickStep2': 'Select <strong>Network</strong> and unlock the settings with elevated privileges.',
-    'manual.quickStep3': 'Click on <strong>ID/Relay-Server</strong> and then <i class="ti ti-clipboard"></i> (<strong>Import Server Config</strong>) and paste the config string from the <a href="#config">Server Configuration</a> section.',
+    'manual.quickStep3': 'Click on <strong>ID/Relay-Server</strong> and then <i class="ti ti-clipboard"></i> (<strong>Import Server Config</strong>) and paste the config string from the <a href="#config">Desktop Client Configuration</a> section.',
     'manual.manualEntryTitle': 'Manual Entry',
     'manual.manualStep1': 'Open RustDesk → <strong>ID/Relay-Server</strong> settings (see Quick Import).',
     'manual.manualStepApply': 'Click <strong>Apply</strong> or <strong>OK</strong> to save.',
-    'config.title': 'Server Configuration',
-    'config.qrAria': 'QR code for the RustDesk server configuration',
-    'config.qrLabel': 'Scan this QR code in the RustDesk mobile app',
+    'config.title': 'Desktop Client Configuration',
     'config.note': 'The downloads on this page are <strong>pre-configured</strong>.<br>You only need this section if you are using the <strong>macOS</strong> upstream client or a regular RustDesk client.',
     'config.copyHelp': 'Copy this config string and paste it into RustDesk via <strong>Settings → Network → ID/Relay-Server → <i class="ti ti-clipboard"></i> (Import Server Config)</strong>:',
     'config.textareaAria': 'Encoded RustDesk server configuration',
@@ -50,7 +50,7 @@ const I18N = {
     'footer.impress': 'Impress',
     'footer.prerelease': '(prerelease)',
     'asset.windows.title': 'Windows app',
-    'asset.windows.description': '64-bit build for Windows. Portable executable — no installer required.',
+    'asset.windows.description': '64-bit build for Windows.',
     'asset.appimage.title': 'Linux AppImage',
     'asset.appimage.description': 'Recommended for many x86_64 Linux desktops.',
     'asset.deb.title': 'Ubuntu / Debian package',
@@ -70,7 +70,18 @@ const I18N = {
     'asset.macosArm.title': 'macOS DMG for Apple Silicon',
     'asset.macosArm.description': 'Use this for Macs with M1, M2, M3, M4, or newer Apple Silicon chips.',
     'asset.macosIntel.title': 'macOS DMG for Intel Macs',
-    'asset.macosIntel.description': 'Use this for older Intel-based Macs.'
+    'asset.macosIntel.description': 'Use this for older Intel-based Macs.',
+    'mobile.title': 'Mobile Installation',
+    'mobile.qrAria': 'QR code for the RustDesk server configuration',
+    'mobile.qrLabel': 'Scan this QR code in the RustDesk mobile app',
+    'mobile.androidTitle': 'Android',
+    'mobile.androidStep1': 'Download and install the official RustDesk APK for your device above.',
+    'mobile.androidStep2': 'Open RustDesk, go to <strong>Settings</strong> and tap the <i class="ti ti-qrcode"></i> (<strong>barcode icon</strong>) in the top right. Allow camera access and scan the QR code above.',
+    'mobile.androidStep3': 'Alternatively, go to <strong>Settings → ID/Relay-Server</strong> and paste the config string from the <a href="#config">Desktop Client Configuration</a> section or enter the server details manually.',
+    'mobile.iosTitle': 'iOS',
+    'mobile.iosStep1': 'Install RustDesk from the <a href="https://apps.apple.com/us/app/rustdesk-remote-desktop/id1581225015" target="_blank" rel="noopener">App Store</a>.',
+    'mobile.iosStep2': 'Open RustDesk, go to <strong>Settings</strong> and tap the <i class="ti ti-qrcode"></i> (<strong>barcode icon</strong>) in the top right. Allow camera access and scan the QR code above.',
+    'mobile.iosStep3': 'Alternatively, go to <strong>Settings → ID/Relay-Server</strong> and paste the config string from the <a href="#config">Desktop Client Configuration</a> section or enter the server details manually.'
   },
   de: {
     'page.title': 'RustDesk Clients',
@@ -86,8 +97,8 @@ const I18N = {
     'recommended.macosDescription': 'Es gibt Builds für Apple Silicon und Intel. Diese offiziellen Upstream-Builds müssen nach der Installation manuell konfiguriert werden.',
     'recommended.macosCta': 'macOS-Optionen anzeigen',
     'recommended.iosTitle': 'Hier wird kein iOS-Build angeboten',
-    'recommended.iosDescription': 'Nutzen Sie die Serverkonfiguration unten mit einem kompatiblen RustDesk-Client.',
-    'recommended.iosCta': 'Serverkonfiguration anzeigen',
+    'recommended.iosDescription': 'Installieren Sie RustDesk aus dem App Store und konfigurieren Sie es mit dem QR-Code oder der Konfigurationszeichenfolge im Abschnitt Mobile Installation unten.',
+    'recommended.iosCta': 'Mobile Installation anzeigen',
     'platform.detected': 'Auf diesem Gerät erkannt',
     'noBuild.linux': 'Noch keine Linux-Builds verfügbar.',
     'noBuild.windows': 'Noch keine Windows-Builds verfügbar.',
@@ -95,16 +106,16 @@ const I18N = {
     'noBuild.android': 'Noch keine Android-Builds verfügbar.',
     'macos.noteText': 'Dies sind offizielle Upstream-Builds. Die automatische Konfiguration ist dort nicht enthalten. Siehe ',
     'macos.noteLink': 'manuelle Einrichtung',
+    'android.noteText': 'Dies sind offizielle Upstream-Builds. Die automatische Konfiguration ist dort nicht enthalten. Siehe ',
+    'android.noteLink': 'manuelle Einrichtung',
     'manual.quickImportTitle': 'Schnellimport (empfohlen)',
     'manual.quickStep1': 'Öffnen Sie RustDesk und klicken Sie auf die <strong>Menüschaltfläche</strong> (⋯) neben Ihrer ID.',
     'manual.quickStep2': 'Wählen Sie <strong>Netzwerk</strong> und entsperren Sie die Einstellungen mit erhöhten Rechten.',
-    'manual.quickStep3': 'Klicken Sie auf <strong>ID/Relay-Server</strong> und dann auf <i class="ti ti-clipboard"></i> (<strong>Serverkonfiguration importieren</strong>) und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Serverkonfiguration</a> ein.',
+    'manual.quickStep3': 'Klicken Sie auf <strong>ID/Relay-Server</strong> und dann auf <i class="ti ti-clipboard"></i> (<strong>Serverkonfiguration importieren</strong>) und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Desktop-Client-Konfiguration</a> ein.',
     'manual.manualEntryTitle': 'Manuelle Eingabe',
     'manual.manualStep1': 'Öffnen Sie in RustDesk die <strong>ID/Relay-Server</strong>-Einstellungen (Siehe Schnellimport).',
     'manual.manualStepApply': 'Klicken Sie zum Speichern auf <strong>OK</strong>.',
-    'config.title': 'Serverkonfiguration',
-    'config.qrAria': 'QR-Code für die RustDesk-Serverkonfiguration',
-    'config.qrLabel': 'Scanne diesen QR-Code in der mobilen RustDesk-App',
+    'config.title': 'Desktop-Client-Konfiguration',
     'config.note': 'Die Downloads auf dieser Seite sind bereits <strong>vorkonfiguriert</strong>.<br>Sie benötigen diesen Abschnitt nur, wenn Sie den <strong>macOS</strong>-Upstream-Client oder einen regulären RustDesk-Client verwenden.',
     'config.copyHelp': 'Kopieren Sie diese Konfigurationszeichenfolge und fügen Sie sie in RustDesk unter <strong>Einstellungen → Netzwerk → ID/Relay-Server → <i class="ti ti-clipboard"></i> (Serverkonfiguration importieren)</strong> ein:',
     'config.textareaAria': 'Kodierte RustDesk-Serverkonfiguration',
@@ -121,7 +132,7 @@ const I18N = {
     'footer.impress': 'Impressum',
     'footer.prerelease': '(Vorabversion)',
     'asset.windows.title': 'Windows-App',
-    'asset.windows.description': '64-Bit-Version für Windows. Portables Programm — keine Installation erforderlich.',
+    'asset.windows.description': '64-Bit-Version für Windows.',
     'asset.appimage.title': 'Linux AppImage',
     'asset.appimage.description': 'Empfohlen für viele x86_64-Linux-Desktops.',
     'asset.deb.title': 'Ubuntu- / Debian-Paket',
@@ -141,7 +152,18 @@ const I18N = {
     'asset.macosArm.title': 'macOS-DMG für Apple Silicon',
     'asset.macosArm.description': 'Für Macs mit M1, M2, M3, M4 oder neueren Apple-Silicon-Chips.',
     'asset.macosIntel.title': 'macOS-DMG für Intel-Macs',
-    'asset.macosIntel.description': 'Für ältere Intel-basierte Macs.'
+    'asset.macosIntel.description': 'Für ältere Intel-basierte Macs.',
+    'mobile.title': 'Mobile Installation',
+    'mobile.qrAria': 'QR-Code für die RustDesk-Serverkonfiguration',
+    'mobile.qrLabel': 'Scanne diesen QR-Code in der mobilen RustDesk-App',
+    'mobile.androidTitle': 'Android',
+    'mobile.androidStep1': 'Laden Sie die offizielle RustDesk-APK für Ihr Gerät oben herunter und installieren Sie sie.',
+    'mobile.androidStep2': 'Öffnen Sie RustDesk, gehen Sie zu <strong>Einstellungen</strong> und tippen Sie auf das <i class="ti ti-scan"></i> (<strong>Barcode-Symbol</strong>) oben rechts. Erlauben Sie den Kamerazugriff und scannen Sie den QR-Code oben.',
+    'mobile.androidStep3': 'Alternativ gehen Sie zu <strong>Einstellungen → ID/Relay-Server</strong> und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Desktop-Client-Konfiguration</a> ein oder geben Sie die Serverdaten manuell ein.',
+    'mobile.iosTitle': 'iOS',
+    'mobile.iosStep1': 'Installieren Sie RustDesk aus dem <a href="https://apps.apple.com/us/app/rustdesk-remote-desktop/id1581225015" target="_blank" rel="noopener">App Store</a>.',
+    'mobile.iosStep2': 'Öffnen Sie RustDesk, gehen Sie zu <strong>Einstellungen</strong> und tippen Sie auf das <i class="ti ti-scan"></i> (<strong>Barcode-Symbol</strong>) oben rechts. Erlauben Sie den Kamerazugriff und scannen Sie den QR-Code oben.',
+    'mobile.iosStep3': 'Alternativ gehen Sie zu <strong>Einstellungen → ID/Relay-Server</strong> und fügen Sie die Konfigurationszeichenfolge aus dem Abschnitt <a href="#config">Desktop-Client-Konfiguration</a> ein oder geben Sie die Serverdaten manuell ein.'
   }
 };
 
@@ -359,16 +381,20 @@ function getAssetLabel(assetName) {
     return translateAssetLabel('asset.flatpak');
   }
 
-  if (name.includes('arm64-v8a') && name.endsWith('.apk')) {
+  if ((name.includes('arm64-v8a') || name.includes('aarch64-signed')) && name.endsWith('.apk')) {
     return translateAssetLabel('asset.androidArm64');
   }
 
-  if (name.includes('armeabi-v7a') && name.endsWith('.apk')) {
+  if ((name.includes('armeabi-v7a') || name.includes('armv7-signed')) && name.endsWith('.apk')) {
     return translateAssetLabel('asset.androidArm32');
   }
 
-  if (name.includes('x86_64') && name.endsWith('.apk')) {
+  if ((name.includes('x86_64') || name.includes('x86_64-signed')) && name.endsWith('.apk')) {
     return translateAssetLabel('asset.androidX64');
+  }
+
+  if (name.includes('universal-signed') && name.endsWith('.apk')) {
+    return translateAssetLabel('asset.androidArm64');
   }
 
   if ((name.includes('aarch64') || name.includes('arm64')) && name.endsWith('.dmg')) {
@@ -407,9 +433,9 @@ function updateRecommendedDownload(platform) {
   if (platform === 'ios') {
     panel.hidden = false;
     title.textContent = t('recommended.iosTitle', 'No iOS build is provided here');
-    description.textContent = t('recommended.iosDescription', 'Use the server configuration below with a compatible RustDesk client.');
-    link.href = '#config';
-    link.textContent = t('recommended.iosCta', 'View server config');
+    description.textContent = t('recommended.iosDescription', 'Install RustDesk from the App Store and configure it using the QR code or config string in the Mobile Installation section below.');
+    link.href = '#mobile';
+    link.textContent = t('recommended.iosCta', 'View mobile installation');
     return;
   }
 
@@ -435,7 +461,8 @@ function updateRecommendedDownload(platform) {
       '.download-link'
     ],
     android: [
-      '[data-asset-name*="arm64-v8a"]',
+      '[data-asset-name*="aarch64-signed"]',
+      '[data-asset-name*="universal-signed"]',
       '.download-link'
     ]
   };

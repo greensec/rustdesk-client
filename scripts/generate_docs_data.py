@@ -123,6 +123,12 @@ def generate_release_yml() -> None:
             "x64": {"name": "", "url": ""},
             "arm64": {"name": "", "url": ""},
         },
+        "upstream_android": {
+            "arm64": {"name": "", "url": ""},
+            "arm32": {"name": "", "url": ""},
+            "x64": {"name": "", "url": ""},
+            "universal": {"name": "", "url": ""},
+        },
     }
 
     # Fetch this repo's release assets via gh CLI.
@@ -159,6 +165,23 @@ def generate_release_yml() -> None:
         "url": f"{base_url}/rustdesk-{upstream_version}-aarch64.dmg",
     }
 
+    release["upstream_android"]["arm64"] = {
+        "name": f"rustdesk-{upstream_version}-aarch64-signed.apk",
+        "url": f"{base_url}/rustdesk-{upstream_version}-aarch64-signed.apk",
+    }
+    release["upstream_android"]["arm32"] = {
+        "name": f"rustdesk-{upstream_version}-armv7-signed.apk",
+        "url": f"{base_url}/rustdesk-{upstream_version}-armv7-signed.apk",
+    }
+    release["upstream_android"]["x64"] = {
+        "name": f"rustdesk-{upstream_version}-x86_64-signed.apk",
+        "url": f"{base_url}/rustdesk-{upstream_version}-x86_64-signed.apk",
+    }
+    release["upstream_android"]["universal"] = {
+        "name": f"rustdesk-{upstream_version}-universal-signed.apk",
+        "url": f"{base_url}/rustdesk-{upstream_version}-universal-signed.apk",
+    }
+
     out = pathlib.Path("docs/_data/release.yml")
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w") as f:
@@ -177,6 +200,11 @@ def generate_release_yml() -> None:
             f.write(f"  {arch}:\n")
             f.write(f"    name: {yaml_string(release['upstream_macos'][arch]['name'])}\n")
             f.write(f"    url: {yaml_string(release['upstream_macos'][arch]['url'])}\n")
+        f.write("upstream_android:\n")
+        for arch in ("arm64", "arm32", "x64", "universal"):
+            f.write(f"  {arch}:\n")
+            f.write(f"    name: {yaml_string(release['upstream_android'][arch]['name'])}\n")
+            f.write(f"    url: {yaml_string(release['upstream_android'][arch]['url'])}\n")
 
 
 def generate_config_yml() -> None:

@@ -33,3 +33,16 @@ upstream_macos:
   arm64:
     name: "rustdesk-1.4.7-aarch64.dmg"
     url: "https://github.com/rustdesk/rustdesk/releases/download/1.4.7/rustdesk-1.4.7-aarch64.dmg"
+upstream_android:
+  arm64:
+    name: "rustdesk-1.4.7-aarch64-signed.apk"
+    url: "https://github.com/rustdesk/rustdesk/releases/download/1.4.7/rustdesk-1.4.7-aarch64-signed.apk"
+  arm32:
+    name: "rustdesk-1.4.7-armv7-signed.apk"
+    url: "https://github.com/rustdesk/rustdesk/releases/download/1.4.7/rustdesk-1.4.7-armv7-signed.apk"
+  x64:
+    name: "rustdesk-1.4.7-x86_64-signed.apk"
+    url: "https://github.com/rustdesk/rustdesk/releases/download/1.4.7/rustdesk-1.4.7-x86_64-signed.apk"
+  universal:
+    name: "rustdesk-1.4.7-universal-signed.apk"
+    url: "https://github.com/rustdesk/rustdesk/releases/download/1.4.7/rustdesk-1.4.7-universal-signed.apk"

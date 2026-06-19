@@ -24,7 +24,8 @@ window.RUSTDESK_CONFIG = {
     </div>
     <div class="hero-actions" aria-label="Primary actions" data-i18n-aria-label="hero.actionsLabel">
       <a class="btn btn-hero" href="#downloads" data-i18n="downloads.title">Downloads</a>
-      <a class="btn btn-hero btn-secondary" href="#config" data-i18n="config.title">Server Configuration</a>
+      <a class="btn btn-hero btn-secondary" href="#mobile" data-i18n="mobile.title">Mobile Installation</a>
+      <a class="btn btn-hero btn-secondary" href="#config" data-i18n="config.title">Desktop Client Configuration</a>
     </div>
   </div>
 </header>
@@ -118,12 +119,29 @@ window.RUSTDESK_CONFIG = {
           Android
         </h3>
         <p class="detected-label" hidden data-i18n="platform.detected">Detected on this device</p>
-        {% if site.data.release.assets.android.size > 0 %}
+        {% assign android_arm64 = site.data.release.upstream_android.arm64 %}
+        {% assign android_arm32 = site.data.release.upstream_android.arm32 %}
+        {% assign android_x64 = site.data.release.upstream_android.x64 %}
+        {% assign android_universal = site.data.release.upstream_android.universal %}
+        {% if android_arm64.url != "" or android_arm32.url != "" or android_x64.url != "" or android_universal.url != "" %}
         <ul>
-          {% for asset in site.data.release.assets.android %}
-          <li><a class="download-link" href="{{ asset.url }}" download data-asset-name="{{ asset.name | escape }}">{{ asset.name }}</a></li>
-          {% endfor %}
+          {% if android_arm64.url != "" %}
+          <li><a class="download-link" href="{{ android_arm64.url }}" download data-asset-name="{{ android_arm64.name | escape }}">{{ android_arm64.name }}</a></li>
+          {% endif %}
+          {% if android_arm32.url != "" %}
+          <li><a class="download-link" href="{{ android_arm32.url }}" download data-asset-name="{{ android_arm32.name | escape }}">{{ android_arm32.name }}</a></li>
+          {% endif %}
+          {% if android_x64.url != "" %}
+          <li><a class="download-link" href="{{ android_x64.url }}" download data-asset-name="{{ android_x64.name | escape }}">{{ android_x64.name }}</a></li>
+          {% endif %}
+          {% if android_universal.url != "" %}
+          <li><a class="download-link" href="{{ android_universal.url }}" download data-asset-name="{{ android_universal.name | escape }}">{{ android_universal.name }}</a></li>
+          {% endif %}
         </ul>
+        <div class="note">
+          <span data-i18n="android.noteText">These are official upstream builds. They do not include your self-hosted server configuration.</span>
+          <a href="#config" data-i18n="android.noteLink">See the manual setup steps.</a>
+        </div>
         {% else %}
         <p class="no-build" data-i18n="noBuild.android">No Android builds available yet.</p>
         {% endif %}
@@ -132,25 +150,49 @@ window.RUSTDESK_CONFIG = {
     </div>
   </section>
 
+  <!-- Mobile Installation -->
+  <section class="section" id="mobile">
+    <h2 class="section-title" data-i18n="mobile.title">Mobile Installation</h2>
+
+    <div class="config-section">
+      <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration" data-i18n-aria-label="mobile.qrAria">
+        {% include qr-config.svg %}
+        <p class="qr-label" data-i18n="mobile.qrLabel">Scan this QR code in the RustDesk mobile app</p>
+      </div>
+
+      <div class="instructions">
+        <h4><i class="ti ti-brand-android"></i> <span data-i18n="mobile.androidTitle">Android</span></h4>
+        <ol>
+          <li data-i18n-html="mobile.androidStep1">Download and install the official RustDesk APK for your device above.</li>
+          <li data-i18n-html="mobile.androidStep2">Open RustDesk, go to <strong>Settings</strong> and tap the <i class="ti ti-qrcode"></i> (<strong>barcode icon</strong>) in the top right. Allow camera access and scan the QR code above.</li>
+          <li data-i18n-html="mobile.androidStep3">Alternatively, go to <strong>Settings → ID/Relay-Server</strong> and paste the config string from the <a href="#config">Desktop Client Configuration</a> section or enter the server details manually.</li>
+        </ol>
+      </div>
+
+      <div class="instructions mt-1">
+        <h4><i class="ti ti-brand-apple"></i> <span data-i18n="mobile.iosTitle">iOS</span></h4>
+        <ol>
+          <li data-i18n-html="mobile.iosStep1">Install RustDesk from the <a href="https://apps.apple.com/us/app/rustdesk-remote-desktop/id1581225015" target="_blank" rel="noopener">App Store</a>.</li>
+          <li data-i18n-html="mobile.iosStep2">Open RustDesk, go to <strong>Settings</strong> and tap the <i class="ti ti-qrcode"></i> (<strong>barcode icon</strong>) in the top right. Allow camera access and scan the QR code above.</li>
+          <li data-i18n-html="mobile.iosStep3">Alternatively, go to <strong>Settings → ID/Relay-Server</strong> and paste the config string from the <a href="#config">Desktop Client Configuration</a> section or enter the server details manually.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
   <!-- Server Configuration -->
   <section class="section" id="config">
-    <h2 class="section-title" data-i18n="config.title">Server Configuration</h2>
+    <h2 class="section-title" data-i18n="config.title">Desktop Client Configuration</h2>
     <div class="config-section">
       <div class="config-warning">
         <i class="ti ti-alert-triangle config-warning-icon"></i>
         <span data-i18n-html="config.note">The downloads on this page are <strong>pre-configured</strong>.<br>You only need this section if you are using the <strong>macOS</strong> upstream client or a regular RustDesk client.</span>
       </div>
-      <div class="config-grid">
-        <div class="qr-wrapper" role="group" aria-label="QR code for the RustDesk server configuration" data-i18n-aria-label="config.qrAria">
-          {% include qr-config.svg %}
-          <p class="qr-label" data-i18n="config.qrLabel">Scan this QR code in the RustDesk mobile app</p>
-        </div>
-        <div>
-          <p class="config-help" data-i18n-html="config.copyHelp">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
-          <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
-          <div class="btn-group">
-            <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy Config</span></button>
-          </div>
+      <div class="mt-2">
+        <p class="config-help" data-i18n-html="config.copyHelp">Copy this config string and paste it into RustDesk via <strong>Settings → Network → Import Server Config</strong>:</p>
+        <textarea class="config-string" id="config-string" aria-label="Encoded RustDesk server configuration" data-i18n-aria-label="config.textareaAria" readonly>{{ site.data.config.encoded_string }}</textarea>
+        <div class="btn-group">
+          <button class="btn" data-copy="#config-string"><i class="ti ti-copy"></i> <span data-i18n="config.copyButton">Copy Config</span></button>
         </div>
       </div>
 
